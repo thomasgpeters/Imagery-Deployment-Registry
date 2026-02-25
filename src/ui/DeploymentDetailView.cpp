@@ -1,6 +1,7 @@
 #include "ui/DeploymentDetailView.h"
 
 #include <Wt/WApplication.h>
+#include <Wt/WMenuItem.h>
 #include <Wt/WTable.h>
 
 namespace dr {
@@ -15,7 +16,7 @@ void DeploymentDetailView::buildUI()
 {
     setStyleClass("container-fluid");
 
-    title_ = addNew<Wt::WText>("<h4>Deployment Detail</h4>");
+    title_ = addNew<Wt::WText>("<h4>Deployment Detail</h4>", Wt::TextFormat::XHTML);
     title_->setStyleClass("mb-3");
 
     tabs_ = addNew<Wt::WTabWidget>();
@@ -23,31 +24,31 @@ void DeploymentDetailView::buildUI()
 
     overviewTab_ = new Wt::WContainerWidget();
     tabs_->addTab(std::unique_ptr<Wt::WContainerWidget>(overviewTab_),
-                  "<i class='bi bi-info-circle me-1'></i>Overview");
+                  "Overview", Wt::ContentLoading::Eager);
 
     imagesTab_ = new Wt::WContainerWidget();
     tabs_->addTab(std::unique_ptr<Wt::WContainerWidget>(imagesTab_),
-                  "<i class='bi bi-layers me-1'></i>Images");
+                  "Images", Wt::ContentLoading::Eager);
 
     portsTab_ = new Wt::WContainerWidget();
     tabs_->addTab(std::unique_ptr<Wt::WContainerWidget>(portsTab_),
-                  "<i class='bi bi-plug me-1'></i>Ports");
+                  "Ports", Wt::ContentLoading::Eager);
 
     composeTab_ = new Wt::WContainerWidget();
     tabs_->addTab(std::unique_ptr<Wt::WContainerWidget>(composeTab_),
-                  "<i class='bi bi-file-earmark-code me-1'></i>Compose");
+                  "Compose", Wt::ContentLoading::Eager);
 
     envVarsTab_ = new Wt::WContainerWidget();
     tabs_->addTab(std::unique_ptr<Wt::WContainerWidget>(envVarsTab_),
-                  "<i class='bi bi-gear me-1'></i>Env Vars");
+                  "Env Vars", Wt::ContentLoading::Eager);
 
     healthTab_ = new Wt::WContainerWidget();
     tabs_->addTab(std::unique_ptr<Wt::WContainerWidget>(healthTab_),
-                  "<i class='bi bi-heart-pulse me-1'></i>Health");
+                  "Health", Wt::ContentLoading::Eager);
 
     auditLogTab_ = new Wt::WContainerWidget();
     tabs_->addTab(std::unique_ptr<Wt::WContainerWidget>(auditLogTab_),
-                  "<i class='bi bi-journal-text me-1'></i>Audit Log");
+                  "Audit Log", Wt::ContentLoading::Eager);
 }
 
 // ---------------------------------------------------------------------------
@@ -57,13 +58,14 @@ void DeploymentDetailView::buildUI()
 void DeploymentDetailView::loadDeployment(int deploymentId)
 {
     currentDeploymentId_ = deploymentId;
+    title_->setTextFormat(Wt::TextFormat::XHTML);
     title_->setText("<h4>Deployment #" + std::to_string(deploymentId) + "</h4>");
 
     // Fetch core deployment record
     client_.getOne("Deployment", deploymentId,
         [this, deploymentId](bool ok, const nlohmann::json& item) {
             if (!ok) {
-                title_->setText("<h4>Deployment not found</h4>");
+                title_->setText("<h4>Deployment not found</h4>");  // format already set to XHTML
                 return;
             }
             auto d = model::Deployment::fromJson(item);
@@ -187,7 +189,7 @@ void DeploymentDetailView::populateOverview(const model::Deployment& d)
     if (!d.notes.empty()) {
         auto* notesBox = overviewTab_->addNew<Wt::WContainerWidget>();
         notesBox->setStyleClass("mt-3 p-3 bg-light rounded");
-        notesBox->addNew<Wt::WText>("<strong>Notes:</strong><br>" + d.notes);
+        notesBox->addNew<Wt::WText>("<strong>Notes:</strong><br/>" + d.notes, Wt::TextFormat::XHTML);
     }
 }
 
@@ -196,7 +198,7 @@ void DeploymentDetailView::populateImages(const std::vector<model::DeploymentIma
     imagesTab_->clear();
 
     if (images.empty()) {
-        imagesTab_->addNew<Wt::WText>("<em class='text-muted'>No images recorded.</em>");
+        imagesTab_->addNew<Wt::WText>("<em class='text-muted'>No images recorded.</em>", Wt::TextFormat::XHTML);
         return;
     }
 
@@ -232,7 +234,7 @@ void DeploymentDetailView::populatePorts(const std::vector<model::DeploymentPort
     portsTab_->clear();
 
     if (ports.empty()) {
-        portsTab_->addNew<Wt::WText>("<em class='text-muted'>No port mappings recorded.</em>");
+        portsTab_->addNew<Wt::WText>("<em class='text-muted'>No port mappings recorded.</em>", Wt::TextFormat::XHTML);
         return;
     }
 
@@ -265,14 +267,16 @@ void DeploymentDetailView::populateCompose(const std::string& composeContent)
 
     if (composeContent.empty()) {
         composeTab_->addNew<Wt::WText>(
-            "<em class='text-muted'>No compose content captured for this deployment.</em>");
+            "<em class='text-muted'>No compose content captured for this deployment.</em>",
+            Wt::TextFormat::XHTML);
         return;
     }
 
     composeTab_->addNew<Wt::WText>(
         "<pre class='bg-dark text-light p-3 rounded' "
         "style='max-height:600px;overflow:auto;white-space:pre-wrap;'>" +
-        composeContent + "</pre>");
+        composeContent + "</pre>",
+        Wt::TextFormat::XHTML);
 }
 
 void DeploymentDetailView::populateEnvVars(const std::vector<model::DeploymentEnvVar>& vars)
@@ -281,7 +285,8 @@ void DeploymentDetailView::populateEnvVars(const std::vector<model::DeploymentEn
 
     if (vars.empty()) {
         envVarsTab_->addNew<Wt::WText>(
-            "<em class='text-muted'>No environment variables recorded.</em>");
+            "<em class='text-muted'>No environment variables recorded.</em>",
+            Wt::TextFormat::XHTML);
         return;
     }
 
@@ -314,7 +319,8 @@ void DeploymentDetailView::populateHealth(const std::vector<model::DeploymentHea
 
     if (checks.empty()) {
         healthTab_->addNew<Wt::WText>(
-            "<em class='text-muted'>No health check data available.</em>");
+            "<em class='text-muted'>No health check data available.</em>",
+            Wt::TextFormat::XHTML);
         return;
     }
 
@@ -356,7 +362,8 @@ void DeploymentDetailView::populateAuditLog(const std::vector<model::DeploymentL
 
     if (logs.empty()) {
         auditLogTab_->addNew<Wt::WText>(
-            "<em class='text-muted'>No audit log entries.</em>");
+            "<em class='text-muted'>No audit log entries.</em>",
+            Wt::TextFormat::XHTML);
         return;
     }
 

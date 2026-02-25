@@ -20,11 +20,12 @@ void DeploymentListView::buildUI()
     auto* header = addNew<Wt::WContainerWidget>();
     header->setStyleClass("d-flex justify-content-between align-items-center mb-4");
 
-    title_ = header->addNew<Wt::WText>("<h4>Deployments</h4>");
+    title_ = header->addNew<Wt::WText>("<h4>Deployments</h4>", Wt::TextFormat::XHTML);
 
     auto* refreshBtn = header->addNew<Wt::WText>(
         "<button class='btn btn-outline-primary btn-sm'>"
-        "<i class='bi bi-arrow-clockwise me-1'></i>Refresh</button>");
+        "<i class='bi bi-arrow-clockwise me-1'></i>Refresh</button>",
+        Wt::TextFormat::XHTML);
     refreshBtn->clicked().connect([this] { refresh(); });
 
     // Status line
