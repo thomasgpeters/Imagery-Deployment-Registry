@@ -35,7 +35,7 @@ void MainLayout::buildSidebar()
     auto* brandBox = sidebar_->addNew<Wt::WContainerWidget>();
     brandBox->setStyleClass("text-center mb-4");
     brandTitle_ = brandBox->addNew<Wt::WText>(
-        "<i class='bi bi-box-seam me-2'></i>Deployment Registry", Wt::TextFormat::XHTML);
+        "<span class='bi bi-box-seam me-2'></span>Deployment Registry", Wt::TextFormat::XHTML);
     brandTitle_->setStyleClass("h6 text-white");
 
     // Separator
