@@ -75,7 +75,7 @@ void DeploymentListView::populateTable(const std::vector<model::Deployment>& dep
 {
     // Clear data rows (keep header)
     while (table_->rowCount() > 1)
-        table_->deleteRow(1);
+        table_->removeRow(1);
 
     int row = 1;
     for (const auto& d : deployments) {
@@ -93,9 +93,11 @@ void DeploymentListView::populateTable(const std::vector<model::Deployment>& dep
         // Click row → navigate to detail
         int deployId = d.id;
         table_->rowAt(row)->setStyleClass("cursor-pointer");
-        table_->rowAt(row)->clicked().connect([this, deployId] {
-            layout_.showDeploymentDetail(deployId);
-        });
+        for (int c = 0; c < 7; ++c) {
+            table_->elementAt(row, c)->clicked().connect([this, deployId] {
+                layout_.showDeploymentDetail(deployId);
+            });
+        }
 
         ++row;
     }
