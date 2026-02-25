@@ -27,6 +27,17 @@ if(NOT nlohmann_json_FOUND)
     endif()
 endif()
 
+# If neither find_package nor pkg-config found nlohmann-json, fetch it
+if(NOT nlohmann_json_FOUND AND NOT NLOHMANN_JSON_FOUND)
+    include(FetchContent)
+    FetchContent_Declare(
+        nlohmann_json
+        URL https://github.com/nlohmann/json/releases/download/v3.11.3/json.tar.xz
+    )
+    FetchContent_MakeAvailable(nlohmann_json)
+    set(nlohmann_json_FOUND TRUE)
+endif()
+
 # ── Source subdirectory ───────────────────────────────────────────────────────
 
 add_subdirectory(src)
