@@ -6,6 +6,25 @@
 
 namespace dr {
 
+namespace {
+/// Escape text for safe embedding in XHTML.
+std::string xmlEscape(const std::string& s) {
+    std::string out;
+    out.reserve(s.size());
+    for (char c : s) {
+        switch (c) {
+            case '&':  out += "&amp;";  break;
+            case '<':  out += "&lt;";   break;
+            case '>':  out += "&gt;";   break;
+            case '"':  out += "&quot;"; break;
+            case '\'': out += "&#39;";  break;
+            default:   out += c;
+        }
+    }
+    return out;
+}
+} // anonymous namespace
+
 DeploymentDetailView::DeploymentDetailView(api::AlsClient& client)
     : client_(client)
 {
@@ -45,6 +64,10 @@ void DeploymentDetailView::buildUI()
     healthTab_ = new Wt::WContainerWidget();
     tabs_->addTab(std::unique_ptr<Wt::WContainerWidget>(healthTab_),
                   "Health", Wt::ContentLoading::Eager);
+
+    targetsTab_ = new Wt::WContainerWidget();
+    tabs_->addTab(std::unique_ptr<Wt::WContainerWidget>(targetsTab_),
+                  "Targets", Wt::ContentLoading::Eager);
 
     auditLogTab_ = new Wt::WContainerWidget();
     tabs_->addTab(std::unique_ptr<Wt::WContainerWidget>(auditLogTab_),
@@ -141,6 +164,21 @@ void DeploymentDetailView::fetchChildResources(int deploymentId)
             Wt::WApplication::instance()->triggerUpdate();
         });
 
+    // Targets
+    client_.getAll("DeploymentTarget",
+        [this, deploymentId](bool ok, const nlohmann::json& items) {
+            std::vector<model::DeploymentTarget> targets;
+            if (ok) {
+                for (const auto& it : items) {
+                    auto t = model::DeploymentTarget::fromJson(it);
+                    if (t.deployment_id == deploymentId)
+                        targets.push_back(t);
+                }
+            }
+            populateTargets(targets);
+            Wt::WApplication::instance()->triggerUpdate();
+        });
+
     // Audit Log
     client_.getAll("DeploymentLog",
         [this, deploymentId](bool ok, const nlohmann::json& items) {
@@ -189,7 +227,7 @@ void DeploymentDetailView::populateOverview(const model::Deployment& d)
     if (!d.notes.empty()) {
         auto* notesBox = overviewTab_->addNew<Wt::WContainerWidget>();
         notesBox->setStyleClass("mt-3 p-3 bg-light rounded");
-        notesBox->addNew<Wt::WText>("<strong>Notes:</strong><br/>" + d.notes, Wt::TextFormat::XHTML);
+        notesBox->addNew<Wt::WText>("<strong>Notes:</strong><br/>" + xmlEscape(d.notes), Wt::TextFormat::XHTML);
     }
 }
 
@@ -275,7 +313,7 @@ void DeploymentDetailView::populateCompose(const std::string& composeContent)
     composeTab_->addNew<Wt::WText>(
         "<pre class='bg-dark text-light p-3 rounded' "
         "style='max-height:600px;overflow:auto;white-space:pre-wrap;'>" +
-        composeContent + "</pre>",
+        xmlEscape(composeContent) + "</pre>",
         Wt::TextFormat::XHTML);
 }
 
@@ -394,6 +432,42 @@ void DeploymentDetailView::populateAuditLog(const std::vector<model::DeploymentL
 
         tbl->elementAt(row, 3)->addNew<Wt::WText>(l.created_by);
         tbl->elementAt(row, 4)->addNew<Wt::WText>(l.message);
+        ++row;
+    }
+}
+
+void DeploymentDetailView::populateTargets(const std::vector<model::DeploymentTarget>& targets)
+{
+    targetsTab_->clear();
+
+    if (targets.empty()) {
+        targetsTab_->addNew<Wt::WText>(
+            "<em class='text-muted'>No deployment targets recorded.</em>",
+            Wt::TextFormat::XHTML);
+        return;
+    }
+
+    auto* tbl = targetsTab_->addNew<Wt::WTable>();
+    tbl->setStyleClass("table table-hover table-striped align-middle");
+    tbl->setHeaderCount(1);
+
+    tbl->elementAt(0, 0)->addNew<Wt::WText>("Context");
+    tbl->elementAt(0, 1)->addNew<Wt::WText>("Type");
+    tbl->elementAt(0, 2)->addNew<Wt::WText>("Provider");
+    tbl->elementAt(0, 3)->addNew<Wt::WText>("Namespace");
+    tbl->elementAt(0, 4)->addNew<Wt::WText>("Compose File");
+    tbl->elementAt(0, 5)->addNew<Wt::WText>("Project");
+    for (int c = 0; c < 6; ++c)
+        tbl->elementAt(0, c)->setStyleClass("fw-bold");
+
+    int row = 1;
+    for (const auto& t : targets) {
+        tbl->elementAt(row, 0)->addNew<Wt::WText>(t.context_name);
+        tbl->elementAt(row, 1)->addNew<Wt::WText>(t.target_type);
+        tbl->elementAt(row, 2)->addNew<Wt::WText>(t.provider);
+        tbl->elementAt(row, 3)->addNew<Wt::WText>(t.namespace_name);
+        tbl->elementAt(row, 4)->addNew<Wt::WText>(t.compose_file);
+        tbl->elementAt(row, 5)->addNew<Wt::WText>(t.project_name);
         ++row;
     }
 }

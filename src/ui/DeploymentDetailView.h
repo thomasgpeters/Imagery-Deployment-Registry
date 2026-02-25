@@ -38,6 +38,7 @@ private:
     void populateEnvVars(const std::vector<model::DeploymentEnvVar>& vars);
     void populateHealth(const std::vector<model::DeploymentHealth>& checks);
     void populateAuditLog(const std::vector<model::DeploymentLog>& logs);
+    void populateTargets(const std::vector<model::DeploymentTarget>& targets);
 
     // Fetch child resources for current deployment
     void fetchChildResources(int deploymentId);
@@ -56,6 +57,7 @@ private:
     Wt::WContainerWidget* envVarsTab_   = nullptr;
     Wt::WContainerWidget* healthTab_    = nullptr;
     Wt::WContainerWidget* auditLogTab_  = nullptr;
+    Wt::WContainerWidget* targetsTab_   = nullptr;
 };
 
 } // namespace dr

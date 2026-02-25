@@ -39,7 +39,7 @@ void MainLayout::buildSidebar()
     brandTitle_->setStyleClass("h6 text-white");
 
     // Separator
-    sidebar_->addNew<Wt::WText>("<hr class='border-secondary'>", Wt::TextFormat::XHTML);
+    sidebar_->addNew<Wt::WText>("<hr class='border-secondary'/>", Wt::TextFormat::XHTML);
 
     // Navigation menu
     content_ = new Wt::WStackedWidget();
@@ -62,7 +62,7 @@ void MainLayout::buildSidebar()
     detailItem->setStyleClass("nav-item");
 
     // Version
-    sidebar_->addNew<Wt::WText>("<hr class='border-secondary mt-auto'>", Wt::TextFormat::XHTML);
+    sidebar_->addNew<Wt::WText>("<hr class='border-secondary mt-auto'/>", Wt::TextFormat::XHTML);
     auto* ver = sidebar_->addNew<Wt::WText>("v0.1.0");
     ver->setStyleClass("text-muted small text-center");
 }
