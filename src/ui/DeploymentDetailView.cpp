@@ -1,6 +1,7 @@
 #include "ui/DeploymentDetailView.h"
 
 #include <Wt/WApplication.h>
+#include <Wt/WMenuItem.h>
 #include <Wt/WTable.h>
 
 namespace dr {
@@ -23,38 +24,31 @@ void DeploymentDetailView::buildUI()
 
     overviewTab_ = new Wt::WContainerWidget();
     tabs_->addTab(std::unique_ptr<Wt::WContainerWidget>(overviewTab_),
-                  "<i class='bi bi-info-circle me-1'></i>Overview",
-                  Wt::ContentLoading::Eager)->setTextFormat(Wt::TextFormat::XHTML);
+                  "Overview", Wt::ContentLoading::Eager);
 
     imagesTab_ = new Wt::WContainerWidget();
     tabs_->addTab(std::unique_ptr<Wt::WContainerWidget>(imagesTab_),
-                  "<i class='bi bi-layers me-1'></i>Images",
-                  Wt::ContentLoading::Eager)->setTextFormat(Wt::TextFormat::XHTML);
+                  "Images", Wt::ContentLoading::Eager);
 
     portsTab_ = new Wt::WContainerWidget();
     tabs_->addTab(std::unique_ptr<Wt::WContainerWidget>(portsTab_),
-                  "<i class='bi bi-plug me-1'></i>Ports",
-                  Wt::ContentLoading::Eager)->setTextFormat(Wt::TextFormat::XHTML);
+                  "Ports", Wt::ContentLoading::Eager);
 
     composeTab_ = new Wt::WContainerWidget();
     tabs_->addTab(std::unique_ptr<Wt::WContainerWidget>(composeTab_),
-                  "<i class='bi bi-file-earmark-code me-1'></i>Compose",
-                  Wt::ContentLoading::Eager)->setTextFormat(Wt::TextFormat::XHTML);
+                  "Compose", Wt::ContentLoading::Eager);
 
     envVarsTab_ = new Wt::WContainerWidget();
     tabs_->addTab(std::unique_ptr<Wt::WContainerWidget>(envVarsTab_),
-                  "<i class='bi bi-gear me-1'></i>Env Vars",
-                  Wt::ContentLoading::Eager)->setTextFormat(Wt::TextFormat::XHTML);
+                  "Env Vars", Wt::ContentLoading::Eager);
 
     healthTab_ = new Wt::WContainerWidget();
     tabs_->addTab(std::unique_ptr<Wt::WContainerWidget>(healthTab_),
-                  "<i class='bi bi-heart-pulse me-1'></i>Health",
-                  Wt::ContentLoading::Eager)->setTextFormat(Wt::TextFormat::XHTML);
+                  "Health", Wt::ContentLoading::Eager);
 
     auditLogTab_ = new Wt::WContainerWidget();
     tabs_->addTab(std::unique_ptr<Wt::WContainerWidget>(auditLogTab_),
-                  "<i class='bi bi-journal-text me-1'></i>Audit Log",
-                  Wt::ContentLoading::Eager)->setTextFormat(Wt::TextFormat::XHTML);
+                  "Audit Log", Wt::ContentLoading::Eager);
 }
 
 // ---------------------------------------------------------------------------

@@ -50,16 +50,14 @@ void MainLayout::buildSidebar()
     // List view
     listView_ = new DeploymentListView(alsClient_, *this);
     auto* listItem = menu_->addItem(
-        "<i class='bi bi-list-ul me-2'></i>Deployments", std::unique_ptr<DeploymentListView>(listView_));
-    listItem->setTextFormat(Wt::TextFormat::XHTML);
+        "Deployments", std::unique_ptr<DeploymentListView>(listView_));
     listItem->setPathComponent("deployments");
     listItem->setStyleClass("nav-item");
 
     // Detail view
     detailView_ = new DeploymentDetailView(alsClient_);
     auto* detailItem = menu_->addItem(
-        "<i class='bi bi-eye me-2'></i>Detail", std::unique_ptr<DeploymentDetailView>(detailView_));
-    detailItem->setTextFormat(Wt::TextFormat::XHTML);
+        "Detail", std::unique_ptr<DeploymentDetailView>(detailView_));
     detailItem->setPathComponent("deployment");
     detailItem->setStyleClass("nav-item");
 
