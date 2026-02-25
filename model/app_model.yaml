@@ -1,0 +1,624 @@
+about:
+  date: February 24, 2026 20:50:18
+  recent_changes: works with modified safrs-react-admin
+  version: 0.0.0
+api_root: '{http_type}://{swagger_host}:{port}/{api}'
+application:
+  app:
+    description: generated Ontimize application
+    menu_group:
+      data:
+        icon: edit_square
+        menu_item:
+          Deployment:
+            icon: edit_square
+            menu_name: Deployment
+            menu_title: Deployment
+            page:
+              detail:
+                columns: environment_name,stack_name,pipeline_name,target,provider,status,deployed_by,deployed_at,finished_at,compose_content,compose_project_name,version_label,notes,id
+                include_children: true
+                page_name: detail
+                template_name: detail_template.html
+                title: Deployment
+                typescript_name: detail_component.jinja
+                visible_columns: environment_name,stack_name,pipeline_name,target,provider,status,deployed_by,deployed_at,finished_at,compose_content,compose_project_name,version_label,notes,id
+              home:
+                columns: environment_name,stack_name,pipeline_name,target,provider,status,deployed_by,deployed_at,finished_at,compose_content,compose_project_name,version_label,notes,id
+                include_children: true
+                page_name: home
+                template_name: home_template.html
+                title: Deployment
+                typescript_name: home_template.jinja
+                visible_columns: environment_name,stack_name,pipeline_name,target,provider,status,deployed_by,deployed_at,finished_at,compose_content,compose_project_name,version_label,notes,id
+              new:
+                columns: environment_name,stack_name,pipeline_name,target,provider,status,deployed_by,deployed_at,finished_at,compose_content,compose_project_name,version_label,notes,id
+                include_children: true
+                page_name: new
+                template_name: new_template.html
+                title: Deployment
+                typescript_name: new_component.jinja
+                visible_columns: environment_name,stack_name,pipeline_name,target,provider,status,deployed_by,deployed_at,finished_at,compose_content,compose_project_name,version_label,notes,id
+            template_name: module.jinja
+          DeploymentEnvVar:
+            icon: edit_square
+            menu_name: DeploymentEnvVar
+            menu_title: DeploymentEnvVar
+            page:
+              detail:
+                columns: service_name,deployment_id,var_name,var_value,is_secret,id
+                include_children: true
+                page_name: detail
+                template_name: detail_template.html
+                title: DeploymentEnvVar
+                typescript_name: detail_component.jinja
+                visible_columns: service_name,deployment_id,var_name,var_value,is_secret,id
+              home:
+                columns: service_name,deployment_id,var_name,var_value,is_secret,id
+                include_children: true
+                page_name: home
+                template_name: home_template.html
+                title: DeploymentEnvVar
+                typescript_name: home_template.jinja
+                visible_columns: service_name,deployment_id,var_name,var_value,is_secret,id
+              new:
+                columns: service_name,deployment_id,var_name,var_value,is_secret,id
+                include_children: true
+                page_name: new
+                template_name: new_template.html
+                title: DeploymentEnvVar
+                typescript_name: new_component.jinja
+                visible_columns: service_name,deployment_id,var_name,var_value,is_secret,id
+            template_name: module.jinja
+          DeploymentHealth:
+            icon: edit_square
+            menu_name: DeploymentHealth
+            menu_title: DeploymentHealth
+            page:
+              detail:
+                columns: service_name,deployment_id,status,checked_at,response_time_ms,message,id
+                include_children: true
+                page_name: detail
+                template_name: detail_template.html
+                title: DeploymentHealth
+                typescript_name: detail_component.jinja
+                visible_columns: service_name,deployment_id,status,checked_at,response_time_ms,message,id
+              home:
+                columns: service_name,deployment_id,status,checked_at,response_time_ms,message,id
+                include_children: true
+                page_name: home
+                template_name: home_template.html
+                title: DeploymentHealth
+                typescript_name: home_template.jinja
+                visible_columns: service_name,deployment_id,status,checked_at,response_time_ms,message,id
+              new:
+                columns: service_name,deployment_id,status,checked_at,response_time_ms,message,id
+                include_children: true
+                page_name: new
+                template_name: new_template.html
+                title: DeploymentHealth
+                typescript_name: new_component.jinja
+                visible_columns: service_name,deployment_id,status,checked_at,response_time_ms,message,id
+            template_name: module.jinja
+          DeploymentImage:
+            icon: edit_square
+            menu_name: DeploymentImage
+            menu_title: DeploymentImage
+            page:
+              detail:
+                columns: service_name,deployment_id,tier,image_name,tag,digest,registry_host,id,registry_kind
+                include_children: true
+                page_name: detail
+                template_name: detail_template.html
+                title: DeploymentImage
+                typescript_name: detail_component.jinja
+                visible_columns: service_name,deployment_id,tier,image_name,tag,digest,registry_host,id,registry_kind
+              home:
+                columns: service_name,deployment_id,tier,image_name,tag,digest,registry_host,id,registry_kind
+                include_children: true
+                page_name: home
+                template_name: home_template.html
+                title: DeploymentImage
+                typescript_name: home_template.jinja
+                visible_columns: service_name,deployment_id,tier,image_name,tag,digest,registry_host,id,registry_kind
+              new:
+                columns: service_name,deployment_id,tier,image_name,tag,digest,registry_host,id,registry_kind
+                include_children: true
+                page_name: new
+                template_name: new_template.html
+                title: DeploymentImage
+                typescript_name: new_component.jinja
+                visible_columns: service_name,deployment_id,tier,image_name,tag,digest,registry_host,id,registry_kind
+            template_name: module.jinja
+          DeploymentLog:
+            icon: edit_square
+            menu_name: DeploymentLog
+            menu_title: DeploymentLog
+            page:
+              detail:
+                columns: id,deployment_id,action,status,message,created_at,created_by
+                include_children: true
+                page_name: detail
+                template_name: detail_template.html
+                title: DeploymentLog
+                typescript_name: detail_component.jinja
+                visible_columns: id,deployment_id,action,status,message,created_at,created_by
+              home:
+                columns: id,deployment_id,action,status,message,created_at,created_by
+                include_children: true
+                page_name: home
+                template_name: home_template.html
+                title: DeploymentLog
+                typescript_name: home_template.jinja
+                visible_columns: id,deployment_id,action,status,message,created_at,created_by
+              new:
+                columns: id,deployment_id,action,status,message,created_at,created_by
+                include_children: true
+                page_name: new
+                template_name: new_template.html
+                title: DeploymentLog
+                typescript_name: new_component.jinja
+                visible_columns: id,deployment_id,action,status,message,created_at,created_by
+            template_name: module.jinja
+          DeploymentPort:
+            icon: edit_square
+            menu_name: DeploymentPort
+            menu_title: DeploymentPort
+            page:
+              detail:
+                columns: service_name,deployment_id,container_port,host_port,protocol,id
+                include_children: true
+                page_name: detail
+                template_name: detail_template.html
+                title: DeploymentPort
+                typescript_name: detail_component.jinja
+                visible_columns: service_name,deployment_id,container_port,host_port,protocol,id
+              home:
+                columns: service_name,deployment_id,container_port,host_port,protocol,id
+                include_children: true
+                page_name: home
+                template_name: home_template.html
+                title: DeploymentPort
+                typescript_name: home_template.jinja
+                visible_columns: service_name,deployment_id,container_port,host_port,protocol,id
+              new:
+                columns: service_name,deployment_id,container_port,host_port,protocol,id
+                include_children: true
+                page_name: new
+                template_name: new_template.html
+                title: DeploymentPort
+                typescript_name: new_component.jinja
+                visible_columns: service_name,deployment_id,container_port,host_port,protocol,id
+            template_name: module.jinja
+          DeploymentTarget:
+            icon: edit_square
+            menu_name: DeploymentTarget
+            menu_title: DeploymentTarget
+            page:
+              detail:
+                columns: context_name,deployment_id,target_type,provider,namespace,compose_file,project_name,provider_config,id
+                include_children: true
+                page_name: detail
+                template_name: detail_template.html
+                title: DeploymentTarget
+                typescript_name: detail_component.jinja
+                visible_columns: context_name,deployment_id,target_type,provider,namespace,compose_file,project_name,provider_config,id
+              home:
+                columns: context_name,deployment_id,target_type,provider,namespace,compose_file,project_name,provider_config,id
+                include_children: true
+                page_name: home
+                template_name: home_template.html
+                title: DeploymentTarget
+                typescript_name: home_template.jinja
+                visible_columns: context_name,deployment_id,target_type,provider,namespace,compose_file,project_name,provider_config,id
+              new:
+                columns: context_name,deployment_id,target_type,provider,namespace,compose_file,project_name,provider_config,id
+                include_children: true
+                page_name: new
+                template_name: new_template.html
+                title: DeploymentTarget
+                typescript_name: new_component.jinja
+                visible_columns: context_name,deployment_id,target_type,provider,namespace,compose_file,project_name,provider_config,id
+            template_name: module.jinja
+        menu_name: data
+        menu_title: data
+        opened: true
+    name: app
+authentication: '{system-default}'
+entities:
+  Deployment:
+    columns:
+    - label: ' environment_name*'
+      name: environment_name
+      required: true
+      search: true
+      sort: true
+      template: text
+      type: VARCHAR
+    - name: stack_name
+      required: true
+      template: text
+      type: VARCHAR
+    - name: pipeline_name
+      required: true
+      template: text
+      type: VARCHAR
+    - name: target
+      required: true
+      template: text
+      type: VARCHAR
+    - name: provider
+      required: true
+      template: text
+      type: VARCHAR
+    - name: status
+      required: true
+      template: text
+      type: VARCHAR
+    - name: deployed_by
+      required: true
+      template: text
+      type: VARCHAR
+    - name: deployed_at
+      required: true
+      type: DATETIME
+    - name: finished_at
+      type: DATETIME
+    - name: compose_content
+      required: true
+      template: text
+      type: TEXT
+    - name: compose_project_name
+      required: true
+      template: text
+      type: VARCHAR
+    - name: version_label
+      required: true
+      template: text
+      type: VARCHAR
+    - name: notes
+      required: true
+      template: text
+      type: TEXT
+    - name: id
+      template: integer
+      type: INTEGER
+    favorite: environment_name
+    hidden: {}
+    label: Deployment
+    primary_key:
+    - id
+    tab_groups:
+    - direction: tomany
+      fks:
+      - deployment_id
+      name: DeploymentEnvVarList
+      resource: DeploymentEnvVar
+    - direction: tomany
+      fks:
+      - deployment_id
+      name: DeploymentHealthList
+      resource: DeploymentHealth
+    - direction: tomany
+      fks:
+      - deployment_id
+      name: DeploymentImageList
+      resource: DeploymentImage
+    - direction: tomany
+      fks:
+      - deployment_id
+      name: DeploymentLogList
+      resource: DeploymentLog
+    - direction: tomany
+      fks:
+      - deployment_id
+      name: DeploymentPortList
+      resource: DeploymentPort
+    - direction: tomany
+      fks:
+      - deployment_id
+      name: DeploymentTargetList
+      resource: DeploymentTarget
+    type: Deployment
+  DeploymentEnvVar:
+    columns:
+    - label: ' service_name*'
+      name: service_name
+      required: true
+      search: true
+      sort: true
+      template: text
+      type: VARCHAR
+    - name: deployment_id
+      required: true
+      template: integer
+      type: INTEGER
+    - name: var_name
+      required: true
+      template: text
+      type: VARCHAR
+    - name: var_value
+      required: true
+      template: text
+      type: TEXT
+    - name: is_secret
+      required: true
+      type: Boolean
+    - name: id
+      template: integer
+      type: INTEGER
+    favorite: service_name
+    hidden: {}
+    label: DeploymentEnvVar
+    primary_key:
+    - id
+    tab_groups:
+    - direction: toone
+      fks:
+      - deployment_id
+      name: deployment
+      resource: Deployment
+    type: DeploymentEnvVar
+  DeploymentHealth:
+    columns:
+    - label: ' service_name*'
+      name: service_name
+      required: true
+      search: true
+      sort: true
+      template: text
+      type: VARCHAR
+    - name: deployment_id
+      required: true
+      template: integer
+      type: INTEGER
+    - name: status
+      required: true
+      template: text
+      type: VARCHAR
+    - name: checked_at
+      required: true
+      type: DATETIME
+    - default: '0'
+      name: response_time_ms
+      required: true
+      template: integer
+      type: INTEGER
+    - name: message
+      required: true
+      template: text
+      type: TEXT
+    - name: id
+      template: integer
+      type: INTEGER
+    favorite: service_name
+    hidden: {}
+    label: DeploymentHealth
+    primary_key:
+    - id
+    tab_groups:
+    - direction: toone
+      fks:
+      - deployment_id
+      name: deployment
+      resource: Deployment
+    type: DeploymentHealth
+  DeploymentImage:
+    columns:
+    - label: ' service_name*'
+      name: service_name
+      required: true
+      search: true
+      sort: true
+      template: text
+      type: VARCHAR
+    - name: deployment_id
+      required: true
+      template: integer
+      type: INTEGER
+    - name: tier
+      required: true
+      template: text
+      type: VARCHAR
+    - name: image_name
+      required: true
+      template: text
+      type: VARCHAR
+    - name: tag
+      required: true
+      template: text
+      type: VARCHAR
+    - name: digest
+      required: true
+      template: text
+      type: VARCHAR
+    - name: registry_host
+      required: true
+      template: text
+      type: VARCHAR
+    - name: id
+      template: integer
+      type: INTEGER
+    - name: registry_kind
+      required: true
+      template: text
+      type: VARCHAR
+    favorite: service_name
+    hidden: {}
+    label: DeploymentImage
+    primary_key:
+    - id
+    tab_groups:
+    - direction: toone
+      fks:
+      - deployment_id
+      name: deployment
+      resource: Deployment
+    type: DeploymentImage
+  DeploymentLog:
+    columns:
+    - label: ' id*'
+      name: id
+      search: true
+      sort: true
+      template: integer
+      type: INTEGER
+    - name: deployment_id
+      required: true
+      template: integer
+      type: INTEGER
+    - name: action
+      required: true
+      template: text
+      type: VARCHAR
+    - name: status
+      required: true
+      template: text
+      type: VARCHAR
+    - name: message
+      required: true
+      template: text
+      type: TEXT
+    - name: created_at
+      required: true
+      type: DATETIME
+    - name: created_by
+      required: true
+      template: text
+      type: VARCHAR
+    favorite: id
+    hidden: {}
+    label: DeploymentLog
+    primary_key:
+    - id
+    tab_groups:
+    - direction: toone
+      fks:
+      - deployment_id
+      name: deployment
+      resource: Deployment
+    type: DeploymentLog
+  DeploymentPort:
+    columns:
+    - label: ' service_name*'
+      name: service_name
+      required: true
+      search: true
+      sort: true
+      template: text
+      type: VARCHAR
+    - name: deployment_id
+      required: true
+      template: integer
+      type: INTEGER
+    - default: '0'
+      name: container_port
+      required: true
+      template: integer
+      type: INTEGER
+    - default: '0'
+      name: host_port
+      required: true
+      template: integer
+      type: INTEGER
+    - name: protocol
+      required: true
+      template: text
+      type: VARCHAR
+    - name: id
+      template: integer
+      type: INTEGER
+    favorite: service_name
+    hidden: {}
+    label: DeploymentPort
+    primary_key:
+    - id
+    tab_groups:
+    - direction: toone
+      fks:
+      - deployment_id
+      name: deployment
+      resource: Deployment
+    type: DeploymentPort
+  DeploymentTarget:
+    columns:
+    - label: ' context_name*'
+      name: context_name
+      required: true
+      search: true
+      sort: true
+      template: text
+      type: VARCHAR
+    - name: deployment_id
+      required: true
+      template: integer
+      type: INTEGER
+    - name: target_type
+      required: true
+      template: text
+      type: VARCHAR
+    - name: provider
+      required: true
+      template: text
+      type: VARCHAR
+    - name: namespace
+      required: true
+      template: text
+      type: VARCHAR
+    - name: compose_file
+      required: true
+      template: text
+      type: VARCHAR
+    - name: project_name
+      required: true
+      template: text
+      type: VARCHAR
+    - name: provider_config
+      required: true
+      template: text
+      type: TEXT
+    - name: id
+      template: integer
+      type: INTEGER
+    favorite: context_name
+    hidden: {}
+    label: DeploymentTarget
+    primary_key:
+    - id
+    tab_groups:
+    - direction: toone
+      fks:
+      - deployment_id
+      name: deployment
+      resource: Deployment
+    type: DeploymentTarget
+settings:
+  HomeJS: /admin-app/home.js
+  max_list_columns: 8
+  style_guide:
+    api_endpoint: http://localhost:5656/api
+    applicationLocales:
+    - en
+    - es
+    currency_symbol: $
+    currency_symbol_position: left
+    date_format: YYYY-MM-DD
+    decimal_max: '1000000000'
+    decimal_min: '0'
+    decimal_separator: .
+    edit_on_mode: dblclick
+    exclude_listpicker: false
+    include_translation: false
+    keycloak_client_id: alsclient
+    keycloak_realm: kcals
+    keycloak_url: http://localhost:8080
+    locale: en
+    max_decimal_digits: '4'
+    min_decimal_digits: '2'
+    mode: tab
+    pick_style: list
+    serviceType: JSONAPI
+    startSessionPath: /auth/login
+    style: light
+    thousand_separator: ','
+    use_keycloak: false
