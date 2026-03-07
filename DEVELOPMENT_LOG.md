@@ -1,5 +1,33 @@
 # Development Log — Imagery Deployment Registry
 
+## 2026-03-07 — Fix bus error crash: Http::Client lifecycle and async safety
+
+**Problem:** Clicking "Detail" in the sidebar (or navigating while async HTTP
+requests were in-flight) caused a SIGBUS crash. Two root causes:
+
+1. `Wt::Http::Client` was created as a free-floating `shared_ptr`, not parented
+   to the widget tree. A circular reference (signal → lambda → shared_ptr →
+   client → signal) kept the client alive after session/widget destruction.
+   When the timeout callback fired (~5s), it accessed destroyed widgets → bus
+   error.
+
+2. Async error callbacks in `DeploymentListView::refresh()` and
+   `DeploymentDetailView::loadDeployment()` modified widgets but did not call
+   `triggerUpdate()`, leaving the UI in an inconsistent state.
+
+**Fix:**
+- Parent `Http::Client` to `WApplication` via `addChild()` so it is destroyed
+  with the session; clean up via `removeChild()` after the callback fires.
+- Guard all async callbacks with `WApplication::instance()` null check.
+- Call `triggerUpdate()` on both success and error paths.
+
+**Files changed:**
+- `src/api/AlsClient.cpp`
+- `src/ui/DeploymentListView.cpp`
+- `src/ui/DeploymentDetailView.cpp`
+
+---
+
 ## 2026-03-07 — Fix JSON id parsing in all model classes
 
 **Commit:** `1b3b229`

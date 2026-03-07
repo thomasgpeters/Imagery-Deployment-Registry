@@ -87,15 +87,19 @@ void DeploymentDetailView::loadDeployment(int deploymentId)
     // Fetch core deployment record
     client_.getOne("Deployment", deploymentId,
         [this, deploymentId](bool ok, const nlohmann::json& item) {
+            auto* app = Wt::WApplication::instance();
+            if (!app) return;
+
             if (!ok) {
                 title_->setText("<h4>Deployment not found</h4>");  // format already set to XHTML
+                app->triggerUpdate();
                 return;
             }
             auto d = model::Deployment::fromJson(item);
             populateOverview(d);
             populateCompose(d.compose_content);
 
-            Wt::WApplication::instance()->triggerUpdate();
+            app->triggerUpdate();
         });
 
     // Fetch child resources in parallel
@@ -107,6 +111,8 @@ void DeploymentDetailView::fetchChildResources(int deploymentId)
     // Images
     client_.getAll("DeploymentImage",
         [this, deploymentId](bool ok, const nlohmann::json& items) {
+            auto* app = Wt::WApplication::instance();
+            if (!app) return;
             std::vector<model::DeploymentImage> images;
             if (ok) {
                 for (const auto& it : items) {
@@ -116,12 +122,14 @@ void DeploymentDetailView::fetchChildResources(int deploymentId)
                 }
             }
             populateImages(images);
-            Wt::WApplication::instance()->triggerUpdate();
+            app->triggerUpdate();
         });
 
     // Ports
     client_.getAll("DeploymentPort",
         [this, deploymentId](bool ok, const nlohmann::json& items) {
+            auto* app = Wt::WApplication::instance();
+            if (!app) return;
             std::vector<model::DeploymentPort> ports;
             if (ok) {
                 for (const auto& it : items) {
@@ -131,12 +139,14 @@ void DeploymentDetailView::fetchChildResources(int deploymentId)
                 }
             }
             populatePorts(ports);
-            Wt::WApplication::instance()->triggerUpdate();
+            app->triggerUpdate();
         });
 
     // Env Vars
     client_.getAll("DeploymentEnvVar",
         [this, deploymentId](bool ok, const nlohmann::json& items) {
+            auto* app = Wt::WApplication::instance();
+            if (!app) return;
             std::vector<model::DeploymentEnvVar> vars;
             if (ok) {
                 for (const auto& it : items) {
@@ -146,12 +156,14 @@ void DeploymentDetailView::fetchChildResources(int deploymentId)
                 }
             }
             populateEnvVars(vars);
-            Wt::WApplication::instance()->triggerUpdate();
+            app->triggerUpdate();
         });
 
     // Health
     client_.getAll("DeploymentHealth",
         [this, deploymentId](bool ok, const nlohmann::json& items) {
+            auto* app = Wt::WApplication::instance();
+            if (!app) return;
             std::vector<model::DeploymentHealth> checks;
             if (ok) {
                 for (const auto& it : items) {
@@ -161,12 +173,14 @@ void DeploymentDetailView::fetchChildResources(int deploymentId)
                 }
             }
             populateHealth(checks);
-            Wt::WApplication::instance()->triggerUpdate();
+            app->triggerUpdate();
         });
 
     // Targets
     client_.getAll("DeploymentTarget",
         [this, deploymentId](bool ok, const nlohmann::json& items) {
+            auto* app = Wt::WApplication::instance();
+            if (!app) return;
             std::vector<model::DeploymentTarget> targets;
             if (ok) {
                 for (const auto& it : items) {
@@ -176,12 +190,14 @@ void DeploymentDetailView::fetchChildResources(int deploymentId)
                 }
             }
             populateTargets(targets);
-            Wt::WApplication::instance()->triggerUpdate();
+            app->triggerUpdate();
         });
 
     // Audit Log
     client_.getAll("DeploymentLog",
         [this, deploymentId](bool ok, const nlohmann::json& items) {
+            auto* app = Wt::WApplication::instance();
+            if (!app) return;
             std::vector<model::DeploymentLog> logs;
             if (ok) {
                 for (const auto& it : items) {
@@ -191,7 +207,7 @@ void DeploymentDetailView::fetchChildResources(int deploymentId)
                 }
             }
             populateAuditLog(logs);
-            Wt::WApplication::instance()->triggerUpdate();
+            app->triggerUpdate();
         });
 }
 

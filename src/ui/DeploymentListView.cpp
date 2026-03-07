@@ -55,8 +55,12 @@ void DeploymentListView::refresh()
     status_->setText("Loading...");
 
     client_.getAll("Deployment", [this](bool ok, const nlohmann::json& items) {
+        auto* app = Wt::WApplication::instance();
+        if (!app) return;
+
         if (!ok) {
             status_->setText("Failed to fetch deployments from ALS backend.");
+            app->triggerUpdate();
             return;
         }
 
@@ -68,7 +72,7 @@ void DeploymentListView::refresh()
         status_->setText(std::to_string(deployments.size()) + " deployment(s)");
         populateTable(deployments);
 
-        Wt::WApplication::instance()->triggerUpdate();
+        app->triggerUpdate();
     });
 }
 

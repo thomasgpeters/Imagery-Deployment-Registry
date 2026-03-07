@@ -17,7 +17,15 @@ AlsClient::AlsClient(const std::string& apiBaseUrl)
 void AlsClient::asyncGet(const std::string& url,
                           std::function<void(bool ok, const std::string& body)> handler)
 {
-    auto client = std::make_shared<Wt::Http::Client>();
+    // Parent the Http::Client to the WApplication so it is destroyed when
+    // the session ends — prevents callbacks from firing on dead widgets.
+    auto* app = Wt::WApplication::instance();
+    if (!app) {
+        handler(false, "");
+        return;
+    }
+
+    auto* client = app->addChild(std::make_unique<Wt::Http::Client>());
     client->setTimeout(std::chrono::seconds(10));
     client->setMaximumResponseSize(16 * 1024 * 1024);
 
@@ -29,6 +37,10 @@ void AlsClient::asyncGet(const std::string& url,
             } else {
                 handler(false, "");
             }
+            // Clean up — Wt defers the actual deletion so this is safe
+            // inside the signal handler.
+            if (client->parent())
+                client->parent()->removeChild(client);
         });
 
     client->get(url);
@@ -43,7 +55,13 @@ void AlsClient::asyncRequest(const std::string& method,
                               const std::string& body,
                               std::function<void(bool ok, int status, const std::string& responseBody)> handler)
 {
-    auto client = std::make_shared<Wt::Http::Client>();
+    auto* app = Wt::WApplication::instance();
+    if (!app) {
+        handler(false, 0, "");
+        return;
+    }
+
+    auto* client = app->addChild(std::make_unique<Wt::Http::Client>());
     client->setTimeout(std::chrono::seconds(10));
     client->setMaximumResponseSize(16 * 1024 * 1024);
 
@@ -62,6 +80,8 @@ void AlsClient::asyncRequest(const std::string& method,
             } else {
                 handler(false, 0, "");
             }
+            if (client->parent())
+                client->parent()->removeChild(client);
         });
 
     if (method == "POST")
