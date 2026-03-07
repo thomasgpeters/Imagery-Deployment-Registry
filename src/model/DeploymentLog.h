@@ -17,9 +17,11 @@ struct DeploymentLog {
     static DeploymentLog fromJson(const nlohmann::json& j) {
         DeploymentLog dl;
         auto attr = j.value("attributes", j);
-        dl.id            = j.value("id", 0);
-        if (dl.id == 0 && j.contains("id") && j["id"].is_string()) {
-            try { dl.id = std::stoi(j["id"].get<std::string>()); } catch (...) {}
+        if (j.contains("id")) {
+            if (j["id"].is_number())
+                dl.id = j["id"].get<int>();
+            else if (j["id"].is_string())
+                try { dl.id = std::stoi(j["id"].get<std::string>()); } catch (...) {}
         }
         dl.deployment_id = attr.value("deployment_id", 0);
         dl.action        = attr.value("action", "");
