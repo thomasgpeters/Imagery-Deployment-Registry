@@ -17,9 +17,11 @@ struct DeploymentHealth {
     static DeploymentHealth fromJson(const nlohmann::json& j) {
         DeploymentHealth dh;
         auto attr = j.value("attributes", j);
-        dh.id               = j.value("id", 0);
-        if (dh.id == 0 && j.contains("id") && j["id"].is_string()) {
-            try { dh.id = std::stoi(j["id"].get<std::string>()); } catch (...) {}
+        if (j.contains("id")) {
+            if (j["id"].is_number())
+                dh.id = j["id"].get<int>();
+            else if (j["id"].is_string())
+                try { dh.id = std::stoi(j["id"].get<std::string>()); } catch (...) {}
         }
         dh.deployment_id    = attr.value("deployment_id", 0);
         dh.service_name     = attr.value("service_name", "");

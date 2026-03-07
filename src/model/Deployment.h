@@ -24,9 +24,11 @@ struct Deployment {
     static Deployment fromJson(const nlohmann::json& j) {
         Deployment d;
         auto attr = j.value("attributes", j);
-        d.id                   = j.value("id", 0);
-        if (d.id == 0 && j.contains("id") && j["id"].is_string()) {
-            try { d.id = std::stoi(j["id"].get<std::string>()); } catch (...) {}
+        if (j.contains("id")) {
+            if (j["id"].is_number())
+                d.id = j["id"].get<int>();
+            else if (j["id"].is_string())
+                try { d.id = std::stoi(j["id"].get<std::string>()); } catch (...) {}
         }
         d.environment_name     = attr.value("environment_name", "");
         d.stack_name           = attr.value("stack_name", "");

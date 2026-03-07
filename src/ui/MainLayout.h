@@ -32,7 +32,7 @@ private:
     void buildSidebar();
     void buildContent();
 
-    api::AlsClient alsClient_{"http://localhost:5670/api"};
+    api::AlsClient alsClient_{"http://localhost:5656/api"};
 
     Wt::WContainerWidget* sidebar_   = nullptr;
     Wt::WMenu*            menu_      = nullptr;

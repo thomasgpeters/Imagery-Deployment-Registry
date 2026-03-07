@@ -42,8 +42,14 @@ void RegistryApplication::setupTheme()
 void RegistryApplication::setupRouting()
 {
     internalPathChanged().connect([this]() {
+        auto path = internalPath();
+        // Strip trailing slash so WMenu can match path components
+        if (path.size() > 1 && path.back() == '/') {
+            path.pop_back();
+            setInternalPath(path, false);
+        }
         if (mainLayout_)
-            mainLayout_->handleInternalPath(internalPath());
+            mainLayout_->handleInternalPath(path);
     });
 
     if (mainLayout_)

@@ -16,9 +16,11 @@ struct DeploymentPort {
     static DeploymentPort fromJson(const nlohmann::json& j) {
         DeploymentPort dp;
         auto attr = j.value("attributes", j);
-        dp.id             = j.value("id", 0);
-        if (dp.id == 0 && j.contains("id") && j["id"].is_string()) {
-            try { dp.id = std::stoi(j["id"].get<std::string>()); } catch (...) {}
+        if (j.contains("id")) {
+            if (j["id"].is_number())
+                dp.id = j["id"].get<int>();
+            else if (j["id"].is_string())
+                try { dp.id = std::stoi(j["id"].get<std::string>()); } catch (...) {}
         }
         dp.deployment_id  = attr.value("deployment_id", 0);
         dp.service_name   = attr.value("service_name", "");

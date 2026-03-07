@@ -19,9 +19,11 @@ struct DeploymentImage {
     static DeploymentImage fromJson(const nlohmann::json& j) {
         DeploymentImage di;
         auto attr = j.value("attributes", j);
-        di.id            = j.value("id", 0);
-        if (di.id == 0 && j.contains("id") && j["id"].is_string()) {
-            try { di.id = std::stoi(j["id"].get<std::string>()); } catch (...) {}
+        if (j.contains("id")) {
+            if (j["id"].is_number())
+                di.id = j["id"].get<int>();
+            else if (j["id"].is_string())
+                try { di.id = std::stoi(j["id"].get<std::string>()); } catch (...) {}
         }
         di.deployment_id = attr.value("deployment_id", 0);
         di.tier          = attr.value("tier", "");

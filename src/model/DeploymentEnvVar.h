@@ -16,9 +16,11 @@ struct DeploymentEnvVar {
     static DeploymentEnvVar fromJson(const nlohmann::json& j) {
         DeploymentEnvVar de;
         auto attr = j.value("attributes", j);
-        de.id            = j.value("id", 0);
-        if (de.id == 0 && j.contains("id") && j["id"].is_string()) {
-            try { de.id = std::stoi(j["id"].get<std::string>()); } catch (...) {}
+        if (j.contains("id")) {
+            if (j["id"].is_number())
+                de.id = j["id"].get<int>();
+            else if (j["id"].is_string())
+                try { de.id = std::stoi(j["id"].get<std::string>()); } catch (...) {}
         }
         de.deployment_id = attr.value("deployment_id", 0);
         de.service_name  = attr.value("service_name", "");

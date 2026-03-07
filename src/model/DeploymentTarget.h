@@ -19,9 +19,11 @@ struct DeploymentTarget {
     static DeploymentTarget fromJson(const nlohmann::json& j) {
         DeploymentTarget dt;
         auto attr = j.value("attributes", j);
-        dt.id              = j.value("id", 0);
-        if (dt.id == 0 && j.contains("id") && j["id"].is_string()) {
-            try { dt.id = std::stoi(j["id"].get<std::string>()); } catch (...) {}
+        if (j.contains("id")) {
+            if (j["id"].is_number())
+                dt.id = j["id"].get<int>();
+            else if (j["id"].is_string())
+                try { dt.id = std::stoi(j["id"].get<std::string>()); } catch (...) {}
         }
         dt.deployment_id   = attr.value("deployment_id", 0);
         dt.target_type     = attr.value("target_type", "DockerCompose");
