@@ -16,8 +16,12 @@ requests were in-flight) caused a SIGBUS crash. Two root causes:
    `triggerUpdate()`, leaving the UI in an inconsistent state.
 
 **Fix:**
-- Parent `Http::Client` to `WApplication` via `addChild()` so it is destroyed
-  with the session; clean up via `removeChild()` after the callback fires.
+- Track `Http::Client` instances in `AlsClient::activeClients_` (owned by
+  `MainLayout`). After each callback, `retireClient()` removes the shared_ptr,
+  breaking the circular reference. When the session is destroyed, `MainLayout`
+  → `AlsClient` → all pending clients are destroyed together.
+  (`Wt::Http::Client` is not a `WObject` so `addChild`/`parent` are not
+  available.)
 - Guard all async callbacks with `WApplication::instance()` null check.
 - Call `triggerUpdate()` on both success and error paths.
 
