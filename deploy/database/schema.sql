@@ -21,6 +21,7 @@
 
 CREATE TABLE deployment (
     id                   SERIAL PRIMARY KEY,
+    name                 VARCHAR(200) NOT NULL DEFAULT '',
     environment_name     VARCHAR(200) NOT NULL,
     stack_name           VARCHAR(200) NOT NULL,
     pipeline_name        VARCHAR(200) NOT NULL DEFAULT '',

@@ -7,6 +7,7 @@ namespace dr::model {
 
 struct Deployment {
     int         id                  = 0;
+    std::string name;
     std::string environment_name;
     std::string stack_name;
     std::string pipeline_name;
@@ -30,6 +31,7 @@ struct Deployment {
             else if (j["id"].is_string())
                 try { d.id = std::stoi(j["id"].get<std::string>()); } catch (...) {}
         }
+        d.name                 = attr.value("name", "");
         d.environment_name     = attr.value("environment_name", "");
         d.stack_name           = attr.value("stack_name", "");
         d.pipeline_name        = attr.value("pipeline_name", "");
@@ -48,6 +50,7 @@ struct Deployment {
 
     nlohmann::json toJson() const {
         return {
+            {"name",                 name},
             {"environment_name",     environment_name},
             {"stack_name",           stack_name},
             {"pipeline_name",        pipeline_name},
