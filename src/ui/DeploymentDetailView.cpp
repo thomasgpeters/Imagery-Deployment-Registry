@@ -82,7 +82,7 @@ void DeploymentDetailView::loadDeployment(int deploymentId)
 {
     currentDeploymentId_ = deploymentId;
     title_->setTextFormat(Wt::TextFormat::XHTML);
-    title_->setText("<h4>Deployment #" + std::to_string(deploymentId) + "</h4>");
+    title_->setText("<h4>Loading deployment...</h4>");
 
     // Fetch core deployment record
     client_.getOne("Deployment", deploymentId,
@@ -91,11 +91,18 @@ void DeploymentDetailView::loadDeployment(int deploymentId)
             if (!app) return;
 
             if (!ok) {
-                title_->setText("<h4>Deployment not found</h4>");  // format already set to XHTML
+                title_->setText("<h4>Deployment not found</h4>");
                 app->triggerUpdate();
                 return;
             }
             auto d = model::Deployment::fromJson(item);
+
+            // Use the VCP Deployment name (compose_project_name) as the title
+            std::string name = d.compose_project_name;
+            if (name.empty())
+                name = "Deployment #" + std::to_string(deploymentId);
+            title_->setText("<h4>" + xmlEscape(name) + "</h4>");
+
             populateOverview(d);
             populateCompose(d.compose_content);
 
@@ -219,8 +226,11 @@ void DeploymentDetailView::populateOverview(const model::Deployment& d)
 {
     overviewTab_->clear();
 
-    auto* tbl = overviewTab_->addNew<Wt::WTable>();
-    tbl->setStyleClass("table table-bordered w-auto");
+    auto* card = overviewTab_->addNew<Wt::WContainerWidget>();
+    card->setStyleClass("dr-overview-card");
+
+    auto* tbl = card->addNew<Wt::WTable>();
+    tbl->setStyleClass("table table-bordered w-auto mb-0");
 
     auto addRow = [tbl](const std::string& label, const std::string& value) {
         int row = tbl->rowCount();
@@ -241,7 +251,7 @@ void DeploymentDetailView::populateOverview(const model::Deployment& d)
     addRow("Project Name",  d.compose_project_name);
 
     if (!d.notes.empty()) {
-        auto* notesBox = overviewTab_->addNew<Wt::WContainerWidget>();
+        auto* notesBox = card->addNew<Wt::WContainerWidget>();
         notesBox->setStyleClass("mt-3 p-3 bg-light rounded");
         notesBox->addNew<Wt::WText>("<strong>Notes:</strong><br/>" + xmlEscape(d.notes), Wt::TextFormat::XHTML);
     }
