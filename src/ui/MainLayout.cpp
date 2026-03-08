@@ -87,29 +87,29 @@ void MainLayout::buildContent()
 
 void MainLayout::handleInternalPath(const std::string& path)
 {
+    if (handlingPath_)
+        return;
+    handlingPath_ = true;
+
     if (path.find("/deployment/") == 0) {
-        // Extract deployment ID from path: /deployment/{id}
         std::string idStr = path.substr(std::string("/deployment/").size());
         try {
             int id = std::stoi(idStr);
             showDeploymentDetail(id);
         } catch (...) {
-            // Switch view directly — avoid menu_->select() which would
-            // re-trigger internalPathChanged via setInternalPathEnabled.
-            content_->setCurrentIndex(0);
+            menu_->select(0);
         }
     } else if (path == "/deployments" || path == "/") {
-        // Switch view directly — WMenu with setInternalPathEnabled already
-        // handles menu-item highlighting.  Calling menu_->select(0) here
-        // would re-emit internalPathChanged → infinite recursion → SIGBUS.
-        content_->setCurrentIndex(0);
+        menu_->select(0);
         listView_->reload();
     }
+
+    handlingPath_ = false;
 }
 
 void MainLayout::showDeploymentDetail(int deploymentId)
 {
-    content_->setCurrentIndex(1);
+    menu_->select(1);
     detailView_->loadDeployment(deploymentId);
     Wt::WApplication::instance()->setInternalPath(
         "/deployment/" + std::to_string(deploymentId), false);
