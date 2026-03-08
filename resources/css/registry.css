@@ -81,8 +81,8 @@ pre.bg-dark {
 }
 
 .Wt-tabs .nav-tabs .nav-link {
-    color: #6c757d;
-    background-color: #e9ecef;
+    color: #ffffff;
+    background-color: #6c757d;
     border: none;
     border-radius: 50rem;
     padding: 0.375rem 1rem;
@@ -92,8 +92,8 @@ pre.bg-dark {
 }
 
 .Wt-tabs .nav-tabs .nav-link:hover {
-    background-color: #dee2e6;
-    color: #495057;
+    background-color: #5a6268;
+    color: #ffffff;
 }
 
 .Wt-tabs .nav-tabs .nav-link.active {
@@ -108,7 +108,7 @@ pre.bg-dark {
     background-color: #ffffff;
     border-radius: 0.5rem;
     padding: 1.5rem;
-    margin-top: 1rem;
+    margin-top: 0;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
 }
 
