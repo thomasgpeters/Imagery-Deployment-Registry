@@ -13,7 +13,7 @@ export DOCROOT="${DOCROOT:-.;/resources,/css,/images,/fonts}"
 
 # ── ApiLogicServer (Deployment Registry backend) ───────────────────────────
 export ALS_PORT="${ALS_PORT:-5670}"
-export ALS_HOST="${ALS_HOST:-localhost}"
+export ALS_HOST="${ALS_HOST:-127.0.0.1}"
 export ALS_URL="${ALS_URL:-http://${ALS_HOST}:${ALS_PORT}/api}"
 
 # ── Database (for ALS tier) ────────────────────────────────────────────────

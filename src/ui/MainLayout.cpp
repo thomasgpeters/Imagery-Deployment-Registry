@@ -20,7 +20,7 @@ MainLayout::MainLayout()
         const char* port = std::getenv("ALS_PORT");
         if (host || port) {
             alsClient_.setBaseUrl(
-                "http://" + std::string(host ? host : "localhost")
+                "http://" + std::string(host ? host : "127.0.0.1")
                 + ":" + std::string(port ? port : "5670") + "/api");
         }
     }
