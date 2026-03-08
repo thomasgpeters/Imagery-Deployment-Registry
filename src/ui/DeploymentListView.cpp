@@ -32,8 +32,10 @@ void DeploymentListView::buildUI()
     status_ = addNew<Wt::WText>("");
     status_->setStyleClass("text-muted small mb-3");
 
-    // Table
-    table_ = addNew<Wt::WTable>();
+    // Table — wrapped in a card panel
+    auto* card = addNew<Wt::WContainerWidget>();
+    card->setStyleClass("dr-tab-card");
+    table_ = card->addNew<Wt::WTable>();
     table_->setStyleClass("table table-hover table-striped align-middle");
     table_->setHeaderCount(1);
 

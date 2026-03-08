@@ -98,6 +98,16 @@ pre.bg-dark {
     font-weight: 600;
 }
 
+/* ── Tab content panels — card wrapper for each tab body ────────────────── */
+
+.dr-tab-card {
+    background-color: #ffffff;
+    border-radius: 0.5rem;
+    padding: 1.5rem;
+    margin-top: 1rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
 /* ── Overview card ──────────────────────────────────────────────────────── */
 
 .dr-overview-card {

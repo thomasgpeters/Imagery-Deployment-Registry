@@ -42,34 +42,42 @@ void DeploymentDetailView::buildUI()
     tabs_->setStyleClass("mt-2");
 
     overviewTab_ = new Wt::WContainerWidget();
+    overviewTab_->setStyleClass("dr-tab-card");
     tabs_->addTab(std::unique_ptr<Wt::WContainerWidget>(overviewTab_),
                   "Overview", Wt::ContentLoading::Eager);
 
     imagesTab_ = new Wt::WContainerWidget();
+    imagesTab_->setStyleClass("dr-tab-card");
     tabs_->addTab(std::unique_ptr<Wt::WContainerWidget>(imagesTab_),
                   "Images", Wt::ContentLoading::Eager);
 
     portsTab_ = new Wt::WContainerWidget();
+    portsTab_->setStyleClass("dr-tab-card");
     tabs_->addTab(std::unique_ptr<Wt::WContainerWidget>(portsTab_),
                   "Ports", Wt::ContentLoading::Eager);
 
     composeTab_ = new Wt::WContainerWidget();
+    composeTab_->setStyleClass("dr-tab-card");
     tabs_->addTab(std::unique_ptr<Wt::WContainerWidget>(composeTab_),
                   "Compose", Wt::ContentLoading::Eager);
 
     envVarsTab_ = new Wt::WContainerWidget();
+    envVarsTab_->setStyleClass("dr-tab-card");
     tabs_->addTab(std::unique_ptr<Wt::WContainerWidget>(envVarsTab_),
                   "Env Vars", Wt::ContentLoading::Eager);
 
     healthTab_ = new Wt::WContainerWidget();
+    healthTab_->setStyleClass("dr-tab-card");
     tabs_->addTab(std::unique_ptr<Wt::WContainerWidget>(healthTab_),
                   "Health", Wt::ContentLoading::Eager);
 
     targetsTab_ = new Wt::WContainerWidget();
+    targetsTab_->setStyleClass("dr-tab-card");
     tabs_->addTab(std::unique_ptr<Wt::WContainerWidget>(targetsTab_),
                   "Targets", Wt::ContentLoading::Eager);
 
     auditLogTab_ = new Wt::WContainerWidget();
+    auditLogTab_->setStyleClass("dr-tab-card");
     tabs_->addTab(std::unique_ptr<Wt::WContainerWidget>(auditLogTab_),
                   "Audit Log", Wt::ContentLoading::Eager);
 }
