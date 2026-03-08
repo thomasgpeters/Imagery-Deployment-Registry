@@ -6,6 +6,7 @@ if(Wt_FOUND)
         main.cpp
         app/RegistryApplication.cpp
         api/AlsClient.cpp
+        docker/DockerStatusProvider.cpp
         ui/MainLayout.cpp
         ui/DeploymentListView.cpp
         ui/DeploymentDetailView.cpp

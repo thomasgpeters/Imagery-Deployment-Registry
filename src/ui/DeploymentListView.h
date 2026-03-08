@@ -6,6 +6,7 @@
 #include <Wt/WContainerWidget.h>
 #include <Wt/WTable.h>
 #include <Wt/WText.h>
+#include <Wt/WTimer.h>
 
 #include <vector>
 
@@ -21,6 +22,11 @@ public:
 
     /// Fetch deployments from ALS and rebuild the table.
     void reload();
+
+    /// Start auto-refresh polling (default 15 seconds).
+    void startPolling(int intervalSeconds = 15);
+    /// Stop auto-refresh polling.
+    void stopPolling();
 
 private:
     void buildUI();
@@ -38,6 +44,8 @@ private:
     Wt::WText*  title_    = nullptr;
     Wt::WText*  status_   = nullptr;
     Wt::WTable* table_    = nullptr;
+    Wt::WTimer* pollTimer_ = nullptr;
+    bool        polling_   = false;
 };
 
 } // namespace dr

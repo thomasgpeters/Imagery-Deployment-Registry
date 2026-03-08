@@ -3,6 +3,9 @@
 
 #include <Wt/WApplication.h>
 #include <Wt/WText.h>
+#include <Wt/WTimer.h>
+
+#include <chrono>
 
 namespace dr {
 
@@ -14,6 +17,7 @@ DeploymentListView::DeploymentListView(api::AlsClient& client, MainLayout& layou
 
 DeploymentListView::~DeploymentListView()
 {
+    stopPolling();
     *alive_ = false;
 }
 
@@ -27,11 +31,32 @@ void DeploymentListView::buildUI()
 
     title_ = header->addNew<Wt::WText>("<h4>Deployments</h4>", Wt::TextFormat::XHTML);
 
-    auto* refreshBtn = header->addNew<Wt::WText>(
+    auto* btnGroup = header->addNew<Wt::WContainerWidget>();
+    btnGroup->setStyleClass("d-flex gap-2");
+
+    auto* refreshBtn = btnGroup->addNew<Wt::WText>(
         "<button class='btn btn-outline-primary btn-sm'>"
         "<i class='bi bi-arrow-clockwise me-1'></i>Refresh</button>",
         Wt::TextFormat::XHTML);
     refreshBtn->clicked().connect([this] { reload(); });
+
+    auto* pollBtn = btnGroup->addNew<Wt::WText>(
+        "<button class='btn btn-outline-success btn-sm'>"
+        "<i class='bi bi-play-circle me-1'></i>Auto-refresh</button>",
+        Wt::TextFormat::XHTML);
+    pollBtn->clicked().connect([this, pollBtn] {
+        if (polling_) {
+            stopPolling();
+            pollBtn->setText(
+                "<button class='btn btn-outline-success btn-sm'>"
+                "<i class='bi bi-play-circle me-1'></i>Auto-refresh</button>");
+        } else {
+            startPolling();
+            pollBtn->setText(
+                "<button class='btn btn-success btn-sm'>"
+                "<i class='bi bi-pause-circle me-1'></i>Polling (15s)</button>");
+        }
+    });
 
     // Status line
     status_ = addNew<Wt::WText>("");
@@ -122,6 +147,27 @@ void DeploymentListView::populateTable(const std::vector<model::Deployment>& dep
 
         ++row;
     }
+}
+
+void DeploymentListView::startPolling(int intervalSeconds)
+{
+    if (polling_) return;
+    polling_ = true;
+
+    if (!pollTimer_) {
+        pollTimer_ = addNew<Wt::WTimer>();
+        pollTimer_->timeout().connect([this] { reload(); });
+    }
+    pollTimer_->setInterval(std::chrono::seconds(intervalSeconds));
+    pollTimer_->start();
+    reload();  // immediate first fetch
+}
+
+void DeploymentListView::stopPolling()
+{
+    polling_ = false;
+    if (pollTimer_)
+        pollTimer_->stop();
 }
 
 std::string DeploymentListView::statusBadgeClass(const std::string& status)
