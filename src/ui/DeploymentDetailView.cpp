@@ -105,8 +105,6 @@ void DeploymentDetailView::loadDeployment(int deploymentId)
             if (!guard || !*guard) return;
             auto* app = Wt::WApplication::instance();
             if (!app) return;
-            Wt::WApplication::UpdateLock lock(app);
-            if (!lock) return;
 
             if (!ok) {
                 title_->setText("<h4>Deployment not found</h4>");
@@ -142,8 +140,6 @@ void DeploymentDetailView::fetchChildResources(int deploymentId)
             if (!guard || !*guard) return;
             auto* app = Wt::WApplication::instance();
             if (!app) return;
-            Wt::WApplication::UpdateLock lock(app);
-            if (!lock) return;
             std::vector<model::DeploymentImage> images;
             if (ok) {
                 for (const auto& it : items) {
@@ -163,8 +159,6 @@ void DeploymentDetailView::fetchChildResources(int deploymentId)
             if (!guard || !*guard) return;
             auto* app = Wt::WApplication::instance();
             if (!app) return;
-            Wt::WApplication::UpdateLock lock(app);
-            if (!lock) return;
             std::vector<model::DeploymentPort> ports;
             if (ok) {
                 for (const auto& it : items) {
@@ -184,8 +178,6 @@ void DeploymentDetailView::fetchChildResources(int deploymentId)
             if (!guard || !*guard) return;
             auto* app = Wt::WApplication::instance();
             if (!app) return;
-            Wt::WApplication::UpdateLock lock(app);
-            if (!lock) return;
             std::vector<model::DeploymentEnvVar> vars;
             if (ok) {
                 for (const auto& it : items) {
@@ -205,8 +197,6 @@ void DeploymentDetailView::fetchChildResources(int deploymentId)
             if (!guard || !*guard) return;
             auto* app = Wt::WApplication::instance();
             if (!app) return;
-            Wt::WApplication::UpdateLock lock(app);
-            if (!lock) return;
             std::vector<model::DeploymentHealth> checks;
             if (ok) {
                 for (const auto& it : items) {
@@ -226,8 +216,6 @@ void DeploymentDetailView::fetchChildResources(int deploymentId)
             if (!guard || !*guard) return;
             auto* app = Wt::WApplication::instance();
             if (!app) return;
-            Wt::WApplication::UpdateLock lock(app);
-            if (!lock) return;
             std::vector<model::DeploymentTarget> targets;
             if (ok) {
                 for (const auto& it : items) {
@@ -247,8 +235,6 @@ void DeploymentDetailView::fetchChildResources(int deploymentId)
             if (!guard || !*guard) return;
             auto* app = Wt::WApplication::instance();
             if (!app) return;
-            Wt::WApplication::UpdateLock lock(app);
-            if (!lock) return;
             std::vector<model::DeploymentLog> logs;
             if (ok) {
                 for (const auto& it : items) {

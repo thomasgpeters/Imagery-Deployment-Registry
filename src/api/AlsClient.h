@@ -57,12 +57,16 @@ private:
                       const std::string& body,
                       std::function<void(bool ok, int status, const std::string& responseBody)> handler);
 
-    /// Remove a completed client from the active list, breaking the
-    /// shared_ptr cycle so it can be freed.
+    /// Move a completed client to the retired list (cannot destroy it here
+    /// because we are inside its done()-signal emission).
     void retireClient(Wt::Http::Client* raw);
+
+    /// Destroy previously retired clients (safe — no signals are emitting).
+    void cleanupRetired();
 
     std::string baseUrl_;
     std::vector<std::shared_ptr<Wt::Http::Client>> activeClients_;
+    std::vector<std::shared_ptr<Wt::Http::Client>> retiredClients_;
 
     /// Shared alive flag — destroyed (and set to false) when AlsClient dies.
     /// Lambdas capture a weak_ptr copy so they can detect destruction.
