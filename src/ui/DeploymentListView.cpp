@@ -34,12 +34,27 @@ void DeploymentListView::buildUI()
     auto* btnGroup = header->addNew<Wt::WContainerWidget>();
     btnGroup->setStyleClass("d-flex gap-2");
 
+    // View-mode toggle buttons
+    gridBtn_ = btnGroup->addNew<Wt::WText>(
+        "<button class='btn btn-primary btn-sm'>"
+        "<i class='bi bi-grid-3x3-gap'></i></button>",
+        Wt::TextFormat::XHTML);
+    gridBtn_->clicked().connect([this] { setViewMode(true); });
+
+    listBtn_ = btnGroup->addNew<Wt::WText>(
+        "<button class='btn btn-outline-secondary btn-sm'>"
+        "<i class='bi bi-list-ul'></i></button>",
+        Wt::TextFormat::XHTML);
+    listBtn_->clicked().connect([this] { setViewMode(false); });
+
+    // Refresh
     auto* refreshBtn = btnGroup->addNew<Wt::WText>(
         "<button class='btn btn-outline-primary btn-sm'>"
         "<i class='bi bi-arrow-clockwise me-1'></i>Refresh</button>",
         Wt::TextFormat::XHTML);
     refreshBtn->clicked().connect([this] { reload(); });
 
+    // Poll toggle
     auto* pollBtn = btnGroup->addNew<Wt::WText>(
         "<button class='btn btn-outline-success btn-sm'>"
         "<i class='bi bi-play-circle me-1'></i>Auto-refresh</button>",
@@ -62,17 +77,22 @@ void DeploymentListView::buildUI()
     status_ = addNew<Wt::WText>("");
     status_->setStyleClass("text-muted small mb-3");
 
-    // Table — wrapped in a card panel
-    auto* card = addNew<Wt::WContainerWidget>();
-    card->setStyleClass("dr-tab-card");
-    table_ = card->addNew<Wt::WTable>();
-    table_->setStyleClass("table table-hover table-striped align-middle");
+    // ── Card grid view ───────────────────────────────────────────────────
+    grid_ = addNew<Wt::WContainerWidget>();
+    grid_->setStyleClass("dr-deploy-grid");
+
+    // ── Table list view (hidden by default) ──────────────────────────────
+    listWrap_ = addNew<Wt::WContainerWidget>();
+    listWrap_->setStyleClass("dr-deploy-list dr-tab-card");
+    listWrap_->hide();
+
+    table_ = listWrap_->addNew<Wt::WTable>();
+    table_->setStyleClass("table table-hover table-striped align-middle mb-0");
     table_->setHeaderCount(1);
 
-    // Header cells — column 0 is the target icon
-    table_->elementAt(0, 0)->addNew<Wt::WText>("");           // icon column
-    table_->elementAt(0, 0)->setStyleClass("fw-bold text-center");
-    table_->elementAt(0, 0)->setWidth(Wt::WLength(40));
+    // Table header
+    table_->elementAt(0, 0)->addNew<Wt::WText>("");
+    table_->elementAt(0, 0)->setWidth(Wt::WLength(36));
     table_->elementAt(0, 1)->addNew<Wt::WText>("Name");
     table_->elementAt(0, 2)->addNew<Wt::WText>("Environment");
     table_->elementAt(0, 3)->addNew<Wt::WText>("Stack");
@@ -81,10 +101,50 @@ void DeploymentListView::buildUI()
     table_->elementAt(0, 6)->addNew<Wt::WText>("Version");
     table_->elementAt(0, 7)->addNew<Wt::WText>("Deployed By");
     table_->elementAt(0, 8)->addNew<Wt::WText>("Deployed At");
-
-    for (int c = 1; c < 9; ++c)
+    for (int c = 0; c < 9; ++c)
         table_->elementAt(0, c)->setStyleClass("fw-bold");
 }
+
+// ---------------------------------------------------------------------------
+// View mode toggle
+// ---------------------------------------------------------------------------
+
+void DeploymentListView::setViewMode(bool gridMode)
+{
+    gridMode_ = gridMode;
+
+    if (gridMode) {
+        grid_->show();
+        listWrap_->hide();
+        gridBtn_->setText(
+            "<button class='btn btn-primary btn-sm'>"
+            "<i class='bi bi-grid-3x3-gap'></i></button>");
+        listBtn_->setText(
+            "<button class='btn btn-outline-secondary btn-sm'>"
+            "<i class='bi bi-list-ul'></i></button>");
+    } else {
+        grid_->hide();
+        listWrap_->show();
+        gridBtn_->setText(
+            "<button class='btn btn-outline-secondary btn-sm'>"
+            "<i class='bi bi-grid-3x3-gap'></i></button>");
+        listBtn_->setText(
+            "<button class='btn btn-primary btn-sm'>"
+            "<i class='bi bi-list-ul'></i></button>");
+    }
+
+    // Repopulate the now-visible view with cached data
+    if (!deployments_.empty()) {
+        if (gridMode_)
+            populateGrid(deployments_);
+        else
+            populateTable(deployments_);
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Reload
+// ---------------------------------------------------------------------------
 
 void DeploymentListView::reload()
 {
@@ -96,8 +156,6 @@ void DeploymentListView::reload()
         if (!guard || !*guard) return;
         auto* app = Wt::WApplication::instance();
         if (!app) return;
-        // Note: no UpdateLock — Http::Client done() fires inside the
-        // application's event loop which already holds the session lock.
 
         if (!ok) {
             status_->setText("Failed to fetch deployments from ALS backend ("
@@ -106,17 +164,83 @@ void DeploymentListView::reload()
             return;
         }
 
-        std::vector<model::Deployment> deployments;
-        for (const auto& item : items) {
-            deployments.push_back(model::Deployment::fromJson(item));
-        }
+        deployments_.clear();
+        for (const auto& item : items)
+            deployments_.push_back(model::Deployment::fromJson(item));
 
-        status_->setText(std::to_string(deployments.size()) + " deployment(s)");
-        populateTable(deployments);
+        status_->setText(std::to_string(deployments_.size()) + " deployment(s)");
+
+        if (gridMode_)
+            populateGrid(deployments_);
+        else
+            populateTable(deployments_);
 
         app->triggerUpdate();
     });
 }
+
+// ---------------------------------------------------------------------------
+// Card grid
+// ---------------------------------------------------------------------------
+
+void DeploymentListView::populateGrid(const std::vector<model::Deployment>& deployments)
+{
+    grid_->clear();
+
+    for (const auto& d : deployments) {
+        auto* card = grid_->addNew<Wt::WContainerWidget>();
+        card->setStyleClass("dr-deploy-card");
+
+        // Top row: icon + name + status badge
+        auto* topRow = card->addNew<Wt::WContainerWidget>();
+        topRow->setStyleClass("d-flex align-items-center gap-3 mb-3");
+
+        auto* iconWrap = topRow->addNew<Wt::WText>(
+            targetIcon(d.target, 48), Wt::TextFormat::XHTML);
+        iconWrap->setStyleClass("dr-deploy-icon");
+
+        auto* nameBlock = topRow->addNew<Wt::WContainerWidget>();
+        nameBlock->setStyleClass("flex-grow-1 overflow-hidden");
+
+        int deployId = d.id;
+        auto* nameLink = nameBlock->addNew<Wt::WText>(
+            "<span class='dr-deploy-name'>" + Wt::WWebWidget::htmlText(d.name)
+            + "</span>", Wt::TextFormat::XHTML);
+        nameLink->setStyleClass("d-block");
+        nameLink->clicked().connect([this, deployId] {
+            layout_.showDeploymentDetail(deployId);
+        });
+
+        auto* envText = nameBlock->addNew<Wt::WText>(d.environment_name);
+        envText->setStyleClass("text-muted small d-block text-truncate");
+
+        auto* badge = topRow->addNew<Wt::WText>(d.status);
+        badge->setStyleClass("badge " + statusBadgeClass(d.status) + " ms-auto flex-shrink-0");
+
+        // Info rows
+        auto* info = card->addNew<Wt::WContainerWidget>();
+        info->setStyleClass("dr-deploy-info");
+
+        auto addRow = [&](const std::string& label, const std::string& value) {
+            if (value.empty()) return;
+            info->addNew<Wt::WText>(
+                "<div class='dr-info-row'>"
+                "<span class='dr-info-label'>" + label + "</span>"
+                "<span class='dr-info-value'>" + Wt::WWebWidget::htmlText(value) + "</span>"
+                "</div>", Wt::TextFormat::XHTML);
+        };
+
+        addRow("Stack", d.stack_name);
+        addRow("Target", d.target + " / " + d.provider);
+        addRow("Version", d.version_label);
+        addRow("Deployed By", d.deployed_by);
+        addRow("Deployed At", d.deployed_at);
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Table list
+// ---------------------------------------------------------------------------
 
 void DeploymentListView::populateTable(const std::vector<model::Deployment>& deployments)
 {
@@ -126,13 +250,18 @@ void DeploymentListView::populateTable(const std::vector<model::Deployment>& dep
 
     int row = 1;
     for (const auto& d : deployments) {
-        // Column 0: target icon (Docker / Kubernetes)
         table_->elementAt(row, 0)->addNew<Wt::WText>(
-            targetIcon(d.target), Wt::TextFormat::XHTML);
+            targetIcon(d.target, 24), Wt::TextFormat::XHTML);
         table_->elementAt(row, 0)->setStyleClass("text-center");
 
-        table_->elementAt(row, 1)->addNew<Wt::WText>(d.name);
-        table_->elementAt(row, 1)->setStyleClass("fw-semibold");
+        int deployId = d.id;
+        auto* nameText = table_->elementAt(row, 1)->addNew<Wt::WText>(
+            "<span class='dr-deploy-name'>" + Wt::WWebWidget::htmlText(d.name)
+            + "</span>", Wt::TextFormat::XHTML);
+        nameText->clicked().connect([this, deployId] {
+            layout_.showDeploymentDetail(deployId);
+        });
+
         table_->elementAt(row, 2)->addNew<Wt::WText>(d.environment_name);
         table_->elementAt(row, 3)->addNew<Wt::WText>(d.stack_name);
 
@@ -144,18 +273,13 @@ void DeploymentListView::populateTable(const std::vector<model::Deployment>& dep
         table_->elementAt(row, 7)->addNew<Wt::WText>(d.deployed_by);
         table_->elementAt(row, 8)->addNew<Wt::WText>(d.deployed_at);
 
-        // Click row → navigate to detail
-        int deployId = d.id;
-        table_->rowAt(row)->setStyleClass("cursor-pointer");
-        for (int c = 0; c < 9; ++c) {
-            table_->elementAt(row, c)->clicked().connect([this, deployId] {
-                layout_.showDeploymentDetail(deployId);
-            });
-        }
-
         ++row;
     }
 }
+
+// ---------------------------------------------------------------------------
+// Polling
+// ---------------------------------------------------------------------------
 
 void DeploymentListView::startPolling(int intervalSeconds)
 {
@@ -168,7 +292,7 @@ void DeploymentListView::startPolling(int intervalSeconds)
     }
     pollTimer_->setInterval(std::chrono::seconds(intervalSeconds));
     pollTimer_->start();
-    reload();  // immediate first fetch
+    reload();
 }
 
 void DeploymentListView::stopPolling()
@@ -177,6 +301,10 @@ void DeploymentListView::stopPolling()
     if (pollTimer_)
         pollTimer_->stop();
 }
+
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
 
 std::string DeploymentListView::statusBadgeClass(const std::string& status)
 {
@@ -189,11 +317,13 @@ std::string DeploymentListView::statusBadgeClass(const std::string& status)
     return "bg-secondary";
 }
 
-std::string DeploymentListView::targetIcon(const std::string& target)
+std::string DeploymentListView::targetIcon(const std::string& target, int size)
 {
-    // Docker (whale) — simplified Moby logo, 24×24
-    static const char* dockerSvg =
-        "<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' "
+    std::string sz = std::to_string(size);
+
+    // Docker (whale)
+    std::string dockerSvg =
+        "<svg xmlns='http://www.w3.org/2000/svg' width='" + sz + "' height='" + sz + "' "
         "viewBox='0 0 24 24' fill='#2496ED'>"
         "<path d='M13.98 11.08h2.12a.09.09 0 0 0 .09-.09V9.16a.09.09 0 0 "
         "0-.09-.09h-2.12a.09.09 0 0 0-.09.09v1.83c0 .05.04.09.09.09m-2.3 "
@@ -216,9 +346,9 @@ std::string DeploymentListView::targetIcon(const std::string& target)
         "1.2.45 2.22 1.3 2.82 2.56.06.12.21.12.28.01.49-.78-.06-2.03-.4-3.11z'/>"
         "</svg>";
 
-    // Kubernetes (helm wheel) — simplified logo, 24×24
-    static const char* k8sSvg =
-        "<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' "
+    // Kubernetes (helm wheel)
+    std::string k8sSvg =
+        "<svg xmlns='http://www.w3.org/2000/svg' width='" + sz + "' height='" + sz + "' "
         "viewBox='0 0 32 32' fill='#326CE5'>"
         "<path d='M15.9.5a2.4 2.4 0 0 0-1.1.3L4.4 6.5a2.4 2.4 0 0 0-1.1 "
         "1.4l-2.7 11a2.4 2.4 0 0 0 .3 1.8l7.1 8.7a2.4 2.4 0 0 0 1.6.8h11.4a2.4 "
@@ -233,8 +363,8 @@ std::string DeploymentListView::targetIcon(const std::string& target)
         "</svg>";
 
     // Generic fallback — box icon
-    static const char* genericSvg =
-        "<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' "
+    std::string genericSvg =
+        "<svg xmlns='http://www.w3.org/2000/svg' width='" + sz + "' height='" + sz + "' "
         "viewBox='0 0 16 16' fill='#6c757d'>"
         "<path d='M8.186 1.113a.5.5 0 0 0-.372 0L1.846 "
         "3.5 8 5.961 14.154 3.5 8.186 1.113zM15 4.239l-6.5 "

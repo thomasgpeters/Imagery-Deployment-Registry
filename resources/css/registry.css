@@ -121,6 +121,83 @@ pre.bg-dark {
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
 }
 
+/* ── Deployment card grid ────────────────────────────────────────────────── */
+
+.dr-deploy-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.25rem;
+}
+
+@media (max-width: 1200px) {
+    .dr-deploy-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 768px) {
+    .dr-deploy-grid { grid-template-columns: 1fr; }
+}
+
+.dr-deploy-card {
+    background-color: #ffffff;
+    border-radius: 0.75rem;
+    padding: 1.25rem;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+    transition: box-shadow 0.15s, transform 0.15s;
+}
+
+.dr-deploy-card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+    transform: translateY(-1px);
+}
+
+.dr-deploy-icon {
+    flex-shrink: 0;
+    line-height: 0;
+}
+
+.dr-deploy-name {
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: #0d6efd;
+    cursor: pointer;
+    text-decoration: none;
+}
+
+.dr-deploy-name:hover {
+    text-decoration: underline;
+}
+
+.dr-deploy-info {
+    border-top: 1px solid #e9ecef;
+    padding-top: 0.75rem;
+}
+
+.dr-info-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.2rem 0;
+    font-size: 0.85rem;
+}
+
+.dr-info-label {
+    color: #6c757d;
+    flex-shrink: 0;
+    margin-right: 0.75rem;
+}
+
+.dr-info-value {
+    color: #212529;
+    text-align: right;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* ── Deployment list table (alternative view) ───────────────────────────── */
+
+.dr-deploy-list .table {
+    margin-bottom: 0;
+}
+
 /* ── General ─────────────────────────────────────────────────────────────── */
 
 body {
