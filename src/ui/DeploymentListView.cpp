@@ -72,7 +72,8 @@ void DeploymentListView::reload()
         // application's event loop which already holds the session lock.
 
         if (!ok) {
-            status_->setText("Failed to fetch deployments from ALS backend.");
+            status_->setText("Failed to fetch deployments from ALS backend ("
+                             + client_.baseUrl() + "/Deployment/).");
             app->triggerUpdate();
             return;
         }

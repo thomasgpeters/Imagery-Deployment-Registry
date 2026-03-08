@@ -1,5 +1,7 @@
 #include "api/AlsClient.h"
 
+#include <Wt/WLogger.h>
+
 #include <memory>
 
 using njson = nlohmann::json;
@@ -38,21 +40,28 @@ void AlsClient::asyncGet(const std::string& url,
 
     std::weak_ptr<bool> weak = alive_;
     raw->done().connect(
-        [this, handler, raw, weak](Wt::AsioWrapper::error_code ec,
-                                   const Wt::Http::Message& msg) {
+        [this, handler, raw, weak, url](Wt::AsioWrapper::error_code ec,
+                                        const Wt::Http::Message& msg) {
             auto guard = weak.lock();
             if (!guard || !*guard) return;
-            // Copy response data before retiring the client, because the
-            // Http::Message reference is owned by the Http::Client.
             bool ok = (!ec && msg.status() == 200);
             std::string body = ok ? msg.body() : std::string();
-            // retireClient moves the shared_ptr to a local so the
-            // Http::Client outlives this signal emission.
+            if (!ok) {
+                Wt::log("error") << "AlsClient GET " << url
+                    << " failed: ec=" << ec.message()
+                    << " status=" << (ec ? 0 : msg.status());
+            }
             retireClient(raw);
             handler(ok, body);
         });
 
-    raw->get(url);
+    Wt::log("info") << "AlsClient GET " << url;
+    if (!raw->get(url)) {
+        Wt::log("error") << "AlsClient: Http::Client::get() returned false"
+                          << " for URL: " << url;
+        retireClient(raw);
+        handler(false, "");
+    }
 }
 
 // ---------------------------------------------------------------------------
