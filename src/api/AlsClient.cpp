@@ -10,6 +10,16 @@ AlsClient::AlsClient(const std::string& apiBaseUrl)
     : baseUrl_(apiBaseUrl)
 {}
 
+AlsClient::~AlsClient()
+{
+    *alive_ = false;
+    // Abort every in-flight request so the done() signal won't fire after
+    // this object (or the widgets that own it) is destroyed.
+    for (auto& c : activeClients_)
+        c->abort();
+    activeClients_.clear();
+}
+
 // ---------------------------------------------------------------------------
 // asyncGet
 // ---------------------------------------------------------------------------
@@ -26,9 +36,12 @@ void AlsClient::asyncGet(const std::string& url,
     auto* raw = client.get();
     activeClients_.push_back(std::move(client));
 
+    std::weak_ptr<bool> weak = alive_;
     raw->done().connect(
-        [this, handler, raw](Wt::AsioWrapper::error_code ec,
-                             const Wt::Http::Message& msg) {
+        [this, handler, raw, weak](Wt::AsioWrapper::error_code ec,
+                                   const Wt::Http::Message& msg) {
+            auto guard = weak.lock();
+            if (!guard || !*guard) return;   // AlsClient already destroyed
             if (!ec && msg.status() == 200) {
                 handler(true, msg.body());
             } else {
@@ -62,9 +75,12 @@ void AlsClient::asyncRequest(const std::string& method,
     auto* raw = client.get();
     activeClients_.push_back(std::move(client));
 
+    std::weak_ptr<bool> weak = alive_;
     raw->done().connect(
-        [this, handler, raw](Wt::AsioWrapper::error_code ec,
-                             const Wt::Http::Message& response) {
+        [this, handler, raw, weak](Wt::AsioWrapper::error_code ec,
+                                   const Wt::Http::Message& response) {
+            auto guard = weak.lock();
+            if (!guard || !*guard) return;   // AlsClient already destroyed
             if (!ec) {
                 bool ok = (response.status() >= 200 && response.status() < 300);
                 handler(ok, response.status(), response.body());
