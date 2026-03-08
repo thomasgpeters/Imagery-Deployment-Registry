@@ -156,6 +156,11 @@ CREATE TABLE deployment_log (
 -- INDEXES
 -- ────────────────────────────────────────────────────────────────────────────
 
+-- Ensure only one deployment per name + environment + stack.
+-- This prevents duplicate records in the registry.
+CREATE UNIQUE INDEX uq_deploy_name_env_stack
+    ON deployment(name, environment_name, stack_name);
+
 -- Deployment lookups
 CREATE INDEX idx_deploy_env        ON deployment(environment_name);
 CREATE INDEX idx_deploy_stack      ON deployment(stack_name);

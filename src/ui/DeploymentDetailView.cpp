@@ -1,7 +1,9 @@
 #include "ui/DeploymentDetailView.h"
 
 #include <Wt/WApplication.h>
+#include <Wt/WIOService.h>
 #include <Wt/WMenuItem.h>
+#include <Wt/WServer.h>
 #include <Wt/WTable.h>
 
 namespace dr {
@@ -85,6 +87,11 @@ void DeploymentDetailView::buildUI()
     auditLogTab_->setStyleClass("dr-tab-card");
     tabs_->addTab(std::unique_ptr<Wt::WContainerWidget>(auditLogTab_),
                   "Audit Log", Wt::ContentLoading::Eager);
+
+    dockerTab_ = new Wt::WContainerWidget();
+    dockerTab_->setStyleClass("dr-tab-card");
+    tabs_->addTab(std::unique_ptr<Wt::WContainerWidget>(dockerTab_),
+                  "Docker Status", Wt::ContentLoading::Eager);
 }
 
 // ---------------------------------------------------------------------------
@@ -121,6 +128,18 @@ void DeploymentDetailView::loadDeployment(int deploymentId)
 
             populateOverview(d);
             populateCompose(d.compose_content);
+
+            // For local DockerCompose deployments, fetch live container status
+            if (d.target == "DockerCompose" && d.provider == "Local"
+                && !d.compose_project_name.empty()) {
+                fetchDockerStatus(d.compose_project_name);
+            } else {
+                dockerTab_->clear();
+                dockerTab_->addNew<Wt::WText>(
+                    "<em class='text-muted'>Docker status is only available "
+                    "for local DockerCompose deployments.</em>",
+                    Wt::TextFormat::XHTML);
+            }
 
             app->triggerUpdate();
         });
@@ -471,6 +490,94 @@ void DeploymentDetailView::populateAuditLog(const std::vector<model::DeploymentL
 
         tbl->elementAt(row, 3)->addNew<Wt::WText>(l.created_by);
         tbl->elementAt(row, 4)->addNew<Wt::WText>(l.message);
+        ++row;
+    }
+}
+
+void DeploymentDetailView::fetchDockerStatus(const std::string& projectName)
+{
+    dockerTab_->clear();
+    dockerTab_->addNew<Wt::WText>("Querying Docker...");
+
+    // Run the blocking Docker CLI call on the IO service thread pool
+    std::string sessionId = Wt::WApplication::instance()->sessionId();
+    std::weak_ptr<bool> weak = alive_;
+
+    Wt::WServer::instance()->ioService().post([this, projectName, sessionId, weak] {
+        auto status = docker::DockerStatusProvider::getProjectStatus(projectName);
+
+        // Post the result back to the Wt session
+        Wt::WServer::instance()->post(sessionId, [this, status, weak] {
+            auto guard = weak.lock();
+            if (!guard || !*guard) return;
+            populateDockerStatus(status);
+            Wt::WApplication::instance()->triggerUpdate();
+        });
+    });
+}
+
+void DeploymentDetailView::populateDockerStatus(const docker::ProjectStatus& status)
+{
+    dockerTab_->clear();
+
+    // Overall status banner
+    std::string badgeClass = "bg-secondary";
+    if (status.overall_status == "Running")  badgeClass = "bg-success";
+    else if (status.overall_status == "Degraded") badgeClass = "bg-warning text-dark";
+    else if (status.overall_status == "Stopped")  badgeClass = "bg-danger";
+
+    dockerTab_->addNew<Wt::WText>(
+        "<div class='mb-3'><strong>Project:</strong> "
+        + xmlEscape(status.project_name)
+        + " &nbsp; <span class='badge " + badgeClass + "'>"
+        + xmlEscape(status.overall_status) + "</span></div>",
+        Wt::TextFormat::XHTML);
+
+    if (status.containers.empty()) {
+        dockerTab_->addNew<Wt::WText>(
+            "<em class='text-muted'>No containers found for this project. "
+            "The deployment may not be running locally.</em>",
+            Wt::TextFormat::XHTML);
+        return;
+    }
+
+    auto* tbl = dockerTab_->addNew<Wt::WTable>();
+    tbl->setStyleClass("table table-hover table-striped align-middle");
+    tbl->setHeaderCount(1);
+
+    tbl->elementAt(0, 0)->addNew<Wt::WText>("Container");
+    tbl->elementAt(0, 1)->addNew<Wt::WText>("Image");
+    tbl->elementAt(0, 2)->addNew<Wt::WText>("State");
+    tbl->elementAt(0, 3)->addNew<Wt::WText>("Health");
+    tbl->elementAt(0, 4)->addNew<Wt::WText>("Status");
+    for (int c = 0; c < 5; ++c)
+        tbl->elementAt(0, c)->setStyleClass("fw-bold");
+
+    int row = 1;
+    for (const auto& c : status.containers) {
+        tbl->elementAt(row, 0)->addNew<Wt::WText>(c.container_name);
+        tbl->elementAt(row, 1)->addNew<Wt::WText>(c.image);
+
+        auto* stateBadge = tbl->elementAt(row, 2)->addNew<Wt::WText>(c.state);
+        if (c.state == "running")
+            stateBadge->setStyleClass("badge bg-success");
+        else if (c.state == "exited")
+            stateBadge->setStyleClass("badge bg-danger");
+        else
+            stateBadge->setStyleClass("badge bg-secondary");
+
+        auto* healthBadge = tbl->elementAt(row, 3)->addNew<Wt::WText>(
+            c.health.empty() ? "n/a" : c.health);
+        if (c.health == "healthy")
+            healthBadge->setStyleClass("badge bg-success");
+        else if (c.health == "unhealthy")
+            healthBadge->setStyleClass("badge bg-danger");
+        else if (c.health == "starting")
+            healthBadge->setStyleClass("badge bg-warning text-dark");
+        else
+            healthBadge->setStyleClass("text-muted");
+
+        tbl->elementAt(row, 4)->addNew<Wt::WText>(c.status_text);
         ++row;
     }
 }

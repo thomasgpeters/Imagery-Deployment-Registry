@@ -17,6 +17,7 @@ Requires:  ApiLogicServer >= 10.x  (declare_logic / LogicBank)
 import datetime as _dt
 from logic_bank.logic_bank import Rule           # type: ignore
 from database import models                       # type: ignore – ALS generates this
+from sqlalchemy import and_                        # type: ignore
 
 
 def declare_logic():
@@ -25,6 +26,10 @@ def declare_logic():
     # ── Normalize timezone-aware datetimes before ALS's strptime parser ───
     Rule.early_row_event(on_class=models.Deployment,
                          calling=_normalize_datetimes)
+
+    # ── Deduplicate on insert — find existing by (name, env, stack) ───────
+    Rule.early_row_event(on_class=models.Deployment,
+                         calling=_deduplicate_deployment)
 
     # ── After INSERT — new deployment arrives from VCP ────────────────────
     Rule.after_insert(
@@ -92,6 +97,69 @@ def _on_deployment_deleted(row, old_row, logic_row):
         message=f"Deployment '{row.name}' removed from registry",
         created_by=row.deployed_by or "system",
     )
+
+
+# ---------------------------------------------------------------------------
+# Deduplication
+# ---------------------------------------------------------------------------
+
+def _deduplicate_deployment(row, old_row, logic_row):
+    """Prevent duplicate deployments for the same (name, environment, stack).
+
+    If an INSERT arrives and a deployment with the same (name,
+    environment_name, stack_name) already exists, we copy the incoming
+    attributes onto the existing row and cancel the insert by raising
+    a redirect.  The caller (VCP) should use PATCH when possible, but
+    this guard ensures the registry never holds two records for the
+    same logical deployment.
+
+    Note: This is a best-effort application-level guard.  The database
+    also enforces a UNIQUE index ``uq_deploy_name_env_stack``.
+    """
+    if logic_row.ins_upd_dlt != "ins":
+        return  # only guard inserts
+
+    if not row.name or not row.environment_name or not row.stack_name:
+        return  # incomplete key — let normal validation handle it
+
+    existing = logic_row.session.query(models.Deployment).filter(
+        and_(
+            models.Deployment.name == row.name,
+            models.Deployment.environment_name == row.environment_name,
+            models.Deployment.stack_name == row.stack_name,
+        )
+    ).first()
+
+    if existing is not None:
+        # Update the existing record instead of creating a duplicate.
+        # Copy mutable fields from the incoming row.
+        for col in ("pipeline_name", "target", "provider", "status",
+                     "deployed_by", "deployed_at", "finished_at",
+                     "compose_content", "compose_project_name",
+                     "version_label", "notes"):
+            val = getattr(row, col, None)
+            if val is not None:
+                setattr(existing, col, val)
+
+        # Log the upsert
+        _write_log(
+            logic_row=logic_row,
+            deployment_id=existing.id,
+            action="Deploy",
+            status="Started",
+            message=f"Deployment '{row.name}' upserted (duplicate prevented) — "
+                    f"{row.stack_name} → {row.environment_name}",
+            created_by=getattr(row, "deployed_by", None) or "system",
+        )
+
+        # Cancel the insert by raising — ALS will commit the session
+        # changes (the UPDATE to existing) but skip the INSERT.
+        from logic_bank.exec_row_logic.logic_row import LogicException  # type: ignore
+        raise LogicException(
+            f"Duplicate prevented: deployment '{row.name}' in "
+            f"{row.environment_name}/{row.stack_name} already exists "
+            f"(id={existing.id}). Existing record was updated instead."
+        )
 
 
 # ---------------------------------------------------------------------------

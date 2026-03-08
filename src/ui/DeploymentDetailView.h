@@ -1,6 +1,7 @@
 #pragma once
 
 #include "api/AlsClient.h"
+#include "docker/DockerStatusProvider.h"
 #include "model/Deployment.h"
 #include "model/DeploymentEnvVar.h"
 #include "model/DeploymentHealth.h"
@@ -40,6 +41,10 @@ private:
     void populateHealth(const std::vector<model::DeploymentHealth>& checks);
     void populateAuditLog(const std::vector<model::DeploymentLog>& logs);
     void populateTargets(const std::vector<model::DeploymentTarget>& targets);
+    void populateDockerStatus(const docker::ProjectStatus& status);
+
+    /// Fetch live Docker status for a local compose deployment.
+    void fetchDockerStatus(const std::string& projectName);
 
     // Fetch child resources for current deployment
     void fetchChildResources(int deploymentId);
@@ -62,6 +67,7 @@ private:
     Wt::WContainerWidget* healthTab_    = nullptr;
     Wt::WContainerWidget* auditLogTab_  = nullptr;
     Wt::WContainerWidget* targetsTab_   = nullptr;
+    Wt::WContainerWidget* dockerTab_    = nullptr;
 };
 
 } // namespace dr
