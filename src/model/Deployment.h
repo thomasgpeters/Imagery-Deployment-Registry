@@ -74,6 +74,16 @@ struct Deployment {
         return d;
     }
 
+    /// Human-readable display name with fallback chain.
+    std::string displayName() const {
+        if (!name.empty()) return name;
+        if (!compose_project_name.empty()) return compose_project_name;
+        if (!stack_name.empty() && !environment_name.empty())
+            return stack_name + " / " + environment_name;
+        if (!stack_name.empty()) return stack_name;
+        return "Deployment #" + std::to_string(id);
+    }
+
     nlohmann::json toJson() const {
         return {
             {"name",                 name},

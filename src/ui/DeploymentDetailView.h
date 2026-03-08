@@ -17,13 +17,15 @@
 
 namespace dr {
 
+class MainLayout;
+
 /// Drill-down view for a single deployment.
 ///
 /// Tabs:
 ///   Overview | Images | Ports | Compose | Env Vars | Health | Audit Log
 class DeploymentDetailView : public Wt::WContainerWidget {
 public:
-    explicit DeploymentDetailView(api::AlsClient& client);
+    explicit DeploymentDetailView(api::AlsClient& client, MainLayout& layout);
     ~DeploymentDetailView() override;
 
     /// Fetch deployment by id and populate all tabs.
@@ -49,14 +51,24 @@ private:
     // Fetch child resources for current deployment
     void fetchChildResources(int deploymentId);
 
+    /// Delete the current deployment and all child resources, then navigate back.
+    void deleteDeployment();
+
+    /// Delete all child resources of a given type for a deployment.
+    void deleteChildResources(const std::string& resource, int deploymentId,
+                              std::shared_ptr<int> pending);
+
     api::AlsClient& client_;
+    MainLayout& layout_;
     int currentDeploymentId_ = 0;
 
     /// Shared flag for preventing callbacks from touching a destroyed view.
     std::shared_ptr<bool> alive_ = std::make_shared<bool>(true);
 
-    Wt::WText*      title_          = nullptr;
-    Wt::WTabWidget* tabs_           = nullptr;
+    Wt::WText*            title_          = nullptr;
+    Wt::WContainerWidget* headerRow_      = nullptr;
+    Wt::WText*            deleteStatus_   = nullptr;
+    Wt::WTabWidget*       tabs_           = nullptr;
 
     // Tab containers
     Wt::WContainerWidget* overviewTab_  = nullptr;

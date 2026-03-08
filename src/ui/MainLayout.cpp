@@ -68,7 +68,7 @@ void MainLayout::buildSidebar()
     listItem->setStyleClass("nav-item");
 
     // Detail view
-    detailView_ = new DeploymentDetailView(alsClient_);
+    detailView_ = new DeploymentDetailView(alsClient_, *this);
     auto* detailItem = menu_->addItem(
         "Detail", std::unique_ptr<DeploymentDetailView>(detailView_));
     detailItem->setPathComponent("deployment");
@@ -147,6 +147,13 @@ void MainLayout::showDeploymentDetail(int deploymentId)
     detailView_->loadDeployment(deploymentId);
     Wt::WApplication::instance()->setInternalPath(
         "/deployment/" + std::to_string(deploymentId), false);
+}
+
+void MainLayout::showDeploymentList()
+{
+    menu_->select(0);
+    listView_->reload();
+    Wt::WApplication::instance()->setInternalPath("/deployments", false);
 }
 
 // ---------------------------------------------------------------------------

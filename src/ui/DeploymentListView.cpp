@@ -83,11 +83,13 @@ void DeploymentListView::buildUI()
     pollBtn->clicked().connect([this, pollBtn] {
         if (polling_) {
             stopPolling();
+            pollBtn->setTextFormat(Wt::TextFormat::XHTML);
             pollBtn->setText(
                 "<button class='btn btn-outline-success btn-sm'>"
                 "<i class='bi bi-play-circle me-1'></i>Auto-refresh</button>");
         } else {
             startPolling();
+            pollBtn->setTextFormat(Wt::TextFormat::XHTML);
             pollBtn->setText(
                 "<button class='btn btn-success btn-sm'>"
                 "<i class='bi bi-pause-circle me-1'></i>Polling (15s)</button>");
@@ -137,18 +139,22 @@ void DeploymentListView::setViewMode(bool gridMode)
     if (gridMode) {
         grid_->show();
         listWrap_->hide();
+        gridBtn_->setTextFormat(Wt::TextFormat::XHTML);
         gridBtn_->setText(
             "<button class='btn btn-primary btn-sm'>"
             "<i class='bi bi-grid-3x3-gap'></i></button>");
+        listBtn_->setTextFormat(Wt::TextFormat::XHTML);
         listBtn_->setText(
             "<button class='btn btn-outline-secondary btn-sm'>"
             "<i class='bi bi-list-ul'></i></button>");
     } else {
         grid_->hide();
         listWrap_->show();
+        gridBtn_->setTextFormat(Wt::TextFormat::XHTML);
         gridBtn_->setText(
             "<button class='btn btn-outline-secondary btn-sm'>"
             "<i class='bi bi-grid-3x3-gap'></i></button>");
+        listBtn_->setTextFormat(Wt::TextFormat::XHTML);
         listBtn_->setText(
             "<button class='btn btn-primary btn-sm'>"
             "<i class='bi bi-list-ul'></i></button>");
@@ -225,7 +231,7 @@ void DeploymentListView::populateGrid(const std::vector<model::Deployment>& depl
 
         int deployId = d.id;
         auto* nameLink = nameBlock->addNew<Wt::WText>(
-            "<span class='dr-deploy-name'>" + htmlEncode(d.name)
+            "<span class='dr-deploy-name'>" + htmlEncode(d.displayName())
             + "</span>", Wt::TextFormat::XHTML);
         nameLink->setStyleClass("d-block");
         nameLink->clicked().connect([this, deployId] {
@@ -271,17 +277,15 @@ void DeploymentListView::populateTable(const std::vector<model::Deployment>& dep
 
     int row = 1;
     for (const auto& d : deployments) {
+        int deployId = d.id;
+
         table_->elementAt(row, 0)->addNew<Wt::WText>(
             targetIcon(d.target, 24), Wt::TextFormat::XHTML);
         table_->elementAt(row, 0)->setStyleClass("text-center");
 
-        int deployId = d.id;
-        auto* nameText = table_->elementAt(row, 1)->addNew<Wt::WText>(
-            "<span class='dr-deploy-name'>" + htmlEncode(d.name)
+        table_->elementAt(row, 1)->addNew<Wt::WText>(
+            "<span class='dr-deploy-name'>" + htmlEncode(d.displayName())
             + "</span>", Wt::TextFormat::XHTML);
-        nameText->clicked().connect([this, deployId] {
-            layout_.showDeploymentDetail(deployId);
-        });
 
         table_->elementAt(row, 2)->addNew<Wt::WText>(d.environment_name);
         table_->elementAt(row, 3)->addNew<Wt::WText>(d.stack_name);
@@ -293,6 +297,13 @@ void DeploymentListView::populateTable(const std::vector<model::Deployment>& dep
         table_->elementAt(row, 6)->addNew<Wt::WText>(d.version_label);
         table_->elementAt(row, 7)->addNew<Wt::WText>(d.deployed_by);
         table_->elementAt(row, 8)->addNew<Wt::WText>(d.deployed_at);
+
+        // Make the entire row clickable
+        auto* tableRow = table_->rowAt(row);
+        tableRow->setStyleClass("cursor-pointer");
+        tableRow->clicked().connect([this, deployId] {
+            layout_.showDeploymentDetail(deployId);
+        });
 
         ++row;
     }
@@ -342,29 +353,20 @@ std::string DeploymentListView::targetIcon(const std::string& target, int size)
 {
     std::string sz = std::to_string(size);
 
-    // Docker (whale)
+    // Docker — stacked containers icon (Bootstrap bi-stack style)
     std::string dockerSvg =
         "<svg xmlns='http://www.w3.org/2000/svg' width='" + sz + "' height='" + sz + "' "
-        "viewBox='0 0 24 24' fill='#2496ED'>"
-        "<path d='M13.98 11.08h2.12a.09.09 0 0 0 .09-.09V9.16a.09.09 0 0 "
-        "0-.09-.09h-2.12a.09.09 0 0 0-.09.09v1.83c0 .05.04.09.09.09m-2.3 "
-        "0h2.12a.09.09 0 0 0 .09-.09V9.16a.09.09 0 0 0-.09-.09H11.68a.09.09 "
-        "0 0 0-.09.09v1.83c0 .05.04.09.09.09m-2.3 0h2.12a.09.09 0 0 0 "
-        ".09-.09V9.16a.09.09 0 0 0-.09-.09H9.38a.09.09 0 0 0-.09.09v1.83c0 "
-        ".05.04.09.09.09m-2.3 0h2.12a.09.09 0 0 0 .09-.09V9.16a.09.09 0 0 "
-        "0-.09-.09H7.08a.09.09 0 0 0-.09.09v1.83c0 .05.04.09.09.09m-2.3 "
-        "0h2.12a.09.09 0 0 0 .09-.09V9.16a.09.09 0 0 0-.09-.09H4.78a.09.09 "
-        "0 0 0-.09.09v1.83c0 .05.04.09.09.09m2.3-2.3h2.12a.09.09 0 0 0 "
-        ".09-.09V6.86a.09.09 0 0 0-.09-.09H7.08a.09.09 0 0 0-.09.09v1.83c0 "
-        ".05.04.09.09.09m2.3 0h2.12a.09.09 0 0 0 .09-.09V6.86a.09.09 0 0 "
-        "0-.09-.09H9.38a.09.09 0 0 0-.09.09v1.83c0 .05.04.09.09.09m2.3 "
-        "0h2.12a.09.09 0 0 0 .09-.09V6.86a.09.09 0 0 0-.09-.09H11.68a.09.09 "
-        "0 0 0-.09.09v1.83c0 .05.04.09.09.09m0-2.3h2.12a.09.09 0 0 0 "
-        ".09-.09V4.56a.09.09 0 0 0-.09-.09H11.68a.09.09 0 0 0-.09.09v1.83c0 "
-        ".05.04.09.09.09m10.42 3.89c-.55-.32-1.82-.44-2.79-.28-.13-.95-.64-1.78-1.25-2.46l-.25-.3-.3.25c-.63.52-1.19 "
-        "1.4-1.04 2.8-1.52-.53-3.13-.41-4.38.13-.16.07-.12.2.06.19 1.7-.15 "
-        "5.72-.15 8.42 2.08.36.3.61-.14.43-.38-.55-.74-1.48-1.42-2.55-1.74-.17-.05-.21.19-.05.25 "
-        "1.2.45 2.22 1.3 2.82 2.56.06.12.21.12.28.01.49-.78-.06-2.03-.4-3.11z'/>"
+        "viewBox='0 0 16 16' fill='#2496ED'>"
+        "<path d='M14.763.075A.5.5 0 0 1 15 .5v15a.5.5 0 0 1-.5.5h-3a.5.5 "
+        "0 0 1-.5-.5V14h-1v1.5a.5.5 0 0 1-.5.5h-9a.5.5 0 0 1-.5-.5V10a.5.5 "
+        "0 0 1 .342-.474L6 7.64V4.5a.5.5 0 0 1 .276-.447l8-4a.5.5 0 0 1 "
+        ".487.022zM6 8.694 1 10.36V15h5V8.694zM7 15h2v-1.5a.5.5 0 0 1 "
+        ".5-.5h2a.5.5 0 0 1 .5.5V15h2V1.309l-7 3.5V15z'/>"
+        "<path d='M2 11h1v1H2v-1zm2 0h1v1H4v-1zm-2 2h1v1H2v-1zm2 "
+        "0h1v1H4v-1zm4-4h1v1H8V9zm2 0h1v1h-1V9zm-2 2h1v1H8v-1zm2 "
+        "0h1v1h-1v-1zm2-2h1v1h-1V9zm0 2h1v1h-1v-1zM8 7h1v1H8V7zm2 "
+        "0h1v1h-1V7zm2 0h1v1h-1V7zM8 5h1v1H8V5zm2 0h1v1h-1V5zm2 "
+        "0h1v1h-1V5zm0-2h1v1h-1V3z'/>"
         "</svg>";
 
     // Kubernetes (helm wheel)

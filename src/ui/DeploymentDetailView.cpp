@@ -1,8 +1,10 @@
 #include "ui/DeploymentDetailView.h"
+#include "ui/MainLayout.h"
 
 #include <Wt/WApplication.h>
 #include <Wt/WIOService.h>
 #include <Wt/WMenuItem.h>
+#include <Wt/WMessageBox.h>
 #include <Wt/WServer.h>
 #include <Wt/WTable.h>
 
@@ -27,8 +29,8 @@ std::string xmlEscape(const std::string& s) {
 }
 } // anonymous namespace
 
-DeploymentDetailView::DeploymentDetailView(api::AlsClient& client)
-    : client_(client)
+DeploymentDetailView::DeploymentDetailView(api::AlsClient& client, MainLayout& layout)
+    : client_(client), layout_(layout)
 {
     buildUI();
 }
@@ -42,8 +44,39 @@ void DeploymentDetailView::buildUI()
 {
     setStyleClass("container-fluid");
 
-    title_ = addNew<Wt::WText>("<h4>Deployment Detail</h4>", Wt::TextFormat::XHTML);
-    title_->setStyleClass("mb-3");
+    // Header row: title + delete button
+    headerRow_ = addNew<Wt::WContainerWidget>();
+    headerRow_->setStyleClass("d-flex justify-content-between align-items-center mb-3");
+
+    title_ = headerRow_->addNew<Wt::WText>("<h4>Deployment Detail</h4>", Wt::TextFormat::XHTML);
+
+    auto* btnGroup = headerRow_->addNew<Wt::WContainerWidget>();
+    btnGroup->setStyleClass("d-flex gap-2 align-items-center");
+
+    deleteStatus_ = btnGroup->addNew<Wt::WText>("");
+    deleteStatus_->setStyleClass("text-muted small");
+
+    auto* deleteBtn = btnGroup->addNew<Wt::WText>(
+        "<button class='btn btn-outline-danger btn-sm'>"
+        "<i class='bi bi-trash me-1'></i>Delete</button>",
+        Wt::TextFormat::XHTML);
+    deleteBtn->clicked().connect([this] {
+        auto msgBox = addChild(std::make_unique<Wt::WMessageBox>(
+            "Delete Deployment",
+            "Are you sure you want to delete this deployment and all its "
+            "related data (images, ports, env vars, health checks, targets, "
+            "and audit logs)? This action cannot be undone.",
+            Wt::Icon::Warning,
+            Wt::StandardButton::Yes | Wt::StandardButton::No));
+        msgBox->setModal(true);
+        msgBox->buttonClicked().connect([this, msgBox] {
+            if (msgBox->buttonResult() == Wt::StandardButton::Yes) {
+                deleteDeployment();
+            }
+            removeChild(msgBox);
+        });
+        msgBox->show();
+    });
 
     tabs_ = addNew<Wt::WTabWidget>();
     tabs_->setStyleClass("mt-2");
@@ -120,11 +153,7 @@ void DeploymentDetailView::loadDeployment(int deploymentId)
             }
             auto d = model::Deployment::fromJson(item);
 
-            // Use the deployment name as the title
-            std::string displayName = d.name;
-            if (displayName.empty())
-                displayName = "Deployment #" + std::to_string(deploymentId);
-            title_->setText("<h4>" + xmlEscape(displayName) + "</h4>");
+            title_->setText("<h4>" + xmlEscape(d.displayName()) + "</h4>");
 
             populateOverview(d);
             populateCompose(d.compose_content);
@@ -615,6 +644,88 @@ void DeploymentDetailView::populateTargets(const std::vector<model::DeploymentTa
         tbl->elementAt(row, 4)->addNew<Wt::WText>(t.compose_file);
         tbl->elementAt(row, 5)->addNew<Wt::WText>(t.project_name);
         ++row;
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Delete deployment (cascade)
+// ---------------------------------------------------------------------------
+
+void DeploymentDetailView::deleteDeployment()
+{
+    if (currentDeploymentId_ == 0) return;
+
+    int deploymentId = currentDeploymentId_;
+    deleteStatus_->setText("Deleting child resources...");
+
+    // Count of child resource types still being deleted.
+    // Once all reach zero we delete the parent Deployment record.
+    auto pending = std::make_shared<int>(6);
+    std::weak_ptr<bool> weak = alive_;
+
+    auto onChildrenDone = [this, deploymentId, pending, weak] {
+        if (--(*pending) > 0) return;  // still waiting
+
+        auto guard = weak.lock();
+        if (!guard || !*guard) return;
+
+        deleteStatus_->setText("Deleting deployment record...");
+        auto* app = Wt::WApplication::instance();
+        if (app) app->triggerUpdate();
+
+        client_.remove("Deployment", deploymentId,
+            [this, weak](bool ok) {
+                auto g = weak.lock();
+                if (!g || !*g) return;
+                auto* a = Wt::WApplication::instance();
+                if (!a) return;
+
+                if (ok) {
+                    layout_.showDeploymentList();
+                } else {
+                    deleteStatus_->setText("Failed to delete deployment.");
+                }
+                a->triggerUpdate();
+            });
+    };
+
+    // Delete each child resource type.  For each type we fetch all matching
+    // records, delete them individually, then call onChildrenDone.
+    static const char* childTypes[] = {
+        "DeploymentImage", "DeploymentPort", "DeploymentEnvVar",
+        "DeploymentHealth", "DeploymentTarget", "DeploymentLog"
+    };
+
+    for (const char* type : childTypes) {
+        client_.getAll(std::string(type), "deployment_id", deploymentId,
+            [this, type = std::string(type), onChildrenDone, weak]
+            (bool ok, const nlohmann::json& items) {
+                auto guard = weak.lock();
+                if (!guard || !*guard) return;
+
+                if (!ok || items.empty()) {
+                    onChildrenDone();
+                    auto* a = Wt::WApplication::instance();
+                    if (a) a->triggerUpdate();
+                    return;
+                }
+
+                // Delete each child record; track how many are left
+                auto childPending = std::make_shared<int>(static_cast<int>(items.size()));
+                for (const auto& item : items) {
+                    int childId = model::jint(item, "id");
+                    client_.remove(type, childId,
+                        [childPending, onChildrenDone, weak](bool /*ok*/) {
+                            auto g = weak.lock();
+                            if (!g || !*g) return;
+                            if (--(*childPending) == 0) {
+                                onChildrenDone();
+                            }
+                            auto* a = Wt::WApplication::instance();
+                            if (a) a->triggerUpdate();
+                        });
+                }
+            });
     }
 }
 
