@@ -83,11 +83,13 @@ void DeploymentListView::buildUI()
     pollBtn->clicked().connect([this, pollBtn] {
         if (polling_) {
             stopPolling();
+            pollBtn->setTextFormat(Wt::TextFormat::XHTML);
             pollBtn->setText(
                 "<button class='btn btn-outline-success btn-sm'>"
                 "<i class='bi bi-play-circle me-1'></i>Auto-refresh</button>");
         } else {
             startPolling();
+            pollBtn->setTextFormat(Wt::TextFormat::XHTML);
             pollBtn->setText(
                 "<button class='btn btn-success btn-sm'>"
                 "<i class='bi bi-pause-circle me-1'></i>Polling (15s)</button>");
@@ -137,18 +139,22 @@ void DeploymentListView::setViewMode(bool gridMode)
     if (gridMode) {
         grid_->show();
         listWrap_->hide();
+        gridBtn_->setTextFormat(Wt::TextFormat::XHTML);
         gridBtn_->setText(
             "<button class='btn btn-primary btn-sm'>"
             "<i class='bi bi-grid-3x3-gap'></i></button>");
+        listBtn_->setTextFormat(Wt::TextFormat::XHTML);
         listBtn_->setText(
             "<button class='btn btn-outline-secondary btn-sm'>"
             "<i class='bi bi-list-ul'></i></button>");
     } else {
         grid_->hide();
         listWrap_->show();
+        gridBtn_->setTextFormat(Wt::TextFormat::XHTML);
         gridBtn_->setText(
             "<button class='btn btn-outline-secondary btn-sm'>"
             "<i class='bi bi-grid-3x3-gap'></i></button>");
+        listBtn_->setTextFormat(Wt::TextFormat::XHTML);
         listBtn_->setText(
             "<button class='btn btn-primary btn-sm'>"
             "<i class='bi bi-list-ul'></i></button>");
