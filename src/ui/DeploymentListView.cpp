@@ -298,12 +298,14 @@ void DeploymentListView::populateTable(const std::vector<model::Deployment>& dep
         table_->elementAt(row, 7)->addNew<Wt::WText>(d.deployed_by);
         table_->elementAt(row, 8)->addNew<Wt::WText>(d.deployed_at);
 
-        // Make the entire row clickable
-        auto* tableRow = table_->rowAt(row);
-        tableRow->setStyleClass("cursor-pointer");
-        tableRow->clicked().connect([this, deployId] {
-            layout_.showDeploymentDetail(deployId);
-        });
+        // Make each cell in the row clickable
+        for (int c = 0; c < 9; ++c) {
+            auto* cell = table_->elementAt(row, c);
+            cell->setStyleClass(cell->styleClass() + " cursor-pointer");
+            cell->clicked().connect([this, deployId] {
+                layout_.showDeploymentDetail(deployId);
+            });
+        }
 
         ++row;
     }
