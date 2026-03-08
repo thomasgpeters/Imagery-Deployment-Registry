@@ -29,6 +29,9 @@ public:
     /// Navigate to the deployment detail view for a given deployment id.
     void showDeploymentDetail(int deploymentId);
 
+    /// Navigate back to the deployment list view.
+    void showDeploymentList();
+
 private:
     void buildSidebar();
     void buildContent();
