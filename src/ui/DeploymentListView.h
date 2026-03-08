@@ -8,6 +8,7 @@
 #include <Wt/WText.h>
 #include <Wt/WTimer.h>
 
+#include <memory>
 #include <vector>
 
 namespace dr {
@@ -44,7 +45,7 @@ private:
     Wt::WText*  title_    = nullptr;
     Wt::WText*  status_   = nullptr;
     Wt::WTable* table_    = nullptr;
-    Wt::WTimer* pollTimer_ = nullptr;
+    std::unique_ptr<Wt::WTimer> pollTimer_;
     bool        polling_   = false;
 };
 

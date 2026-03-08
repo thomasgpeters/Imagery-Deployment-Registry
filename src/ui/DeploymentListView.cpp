@@ -155,7 +155,7 @@ void DeploymentListView::startPolling(int intervalSeconds)
     polling_ = true;
 
     if (!pollTimer_) {
-        pollTimer_ = addNew<Wt::WTimer>();
+        pollTimer_ = std::make_unique<Wt::WTimer>();
         pollTimer_->timeout().connect([this] { reload(); });
     }
     pollTimer_->setInterval(std::chrono::seconds(intervalSeconds));
