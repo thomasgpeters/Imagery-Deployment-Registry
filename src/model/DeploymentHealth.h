@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Deployment.h"
+
 #include <nlohmann/json.hpp>
 #include <string>
 
@@ -16,19 +18,14 @@ struct DeploymentHealth {
 
     static DeploymentHealth fromJson(const nlohmann::json& j) {
         DeploymentHealth dh;
-        auto attr = j.value("attributes", j);
-        if (j.contains("id")) {
-            if (j["id"].is_number())
-                dh.id = j["id"].get<int>();
-            else if (j["id"].is_string())
-                try { dh.id = std::stoi(j["id"].get<std::string>()); } catch (...) {}
-        }
-        dh.deployment_id    = attr.value("deployment_id", 0);
-        dh.service_name     = attr.value("service_name", "");
-        dh.status           = attr.value("status", "Unknown");
-        dh.checked_at       = attr.value("checked_at", "");
-        dh.response_time_ms = attr.value("response_time_ms", 0);
-        dh.message          = attr.value("message", "");
+        auto attr = j.contains("attributes") ? j["attributes"] : j;
+        dh.id               = jint(j, "id");
+        dh.deployment_id    = jint(attr, "deployment_id");
+        dh.service_name     = jstr(attr, "service_name");
+        dh.status           = jstr(attr, "status", "Unknown");
+        dh.checked_at       = jstr(attr, "checked_at");
+        dh.response_time_ms = jint(attr, "response_time_ms");
+        dh.message          = jstr(attr, "message");
         return dh;
     }
 

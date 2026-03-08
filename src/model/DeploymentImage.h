@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Deployment.h"
+
 #include <nlohmann/json.hpp>
 #include <string>
 
@@ -18,21 +20,16 @@ struct DeploymentImage {
 
     static DeploymentImage fromJson(const nlohmann::json& j) {
         DeploymentImage di;
-        auto attr = j.value("attributes", j);
-        if (j.contains("id")) {
-            if (j["id"].is_number())
-                di.id = j["id"].get<int>();
-            else if (j["id"].is_string())
-                try { di.id = std::stoi(j["id"].get<std::string>()); } catch (...) {}
-        }
-        di.deployment_id = attr.value("deployment_id", 0);
-        di.tier          = attr.value("tier", "");
-        di.service_name  = attr.value("service_name", "");
-        di.image_name    = attr.value("image_name", "");
-        di.tag           = attr.value("tag", "latest");
-        di.digest        = attr.value("digest", "");
-        di.registry_host = attr.value("registry_host", "");
-        di.registry_kind = attr.value("registry_kind", "");
+        auto attr = j.contains("attributes") ? j["attributes"] : j;
+        di.id            = jint(j, "id");
+        di.deployment_id = jint(attr, "deployment_id");
+        di.tier          = jstr(attr, "tier");
+        di.service_name  = jstr(attr, "service_name");
+        di.image_name    = jstr(attr, "image_name");
+        di.tag           = jstr(attr, "tag", "latest");
+        di.digest        = jstr(attr, "digest");
+        di.registry_host = jstr(attr, "registry_host");
+        di.registry_kind = jstr(attr, "registry_kind");
         return di;
     }
 

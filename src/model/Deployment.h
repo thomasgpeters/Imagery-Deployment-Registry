@@ -5,6 +5,37 @@
 
 namespace dr::model {
 
+/// Null-safe accessor: returns the field as string, or fallback if missing/null.
+inline std::string jstr(const nlohmann::json& obj, const char* key,
+                        const std::string& fallback = "")
+{
+    auto it = obj.find(key);
+    if (it == obj.end() || it->is_null()) return fallback;
+    if (it->is_string()) return it->get<std::string>();
+    return it->dump();  // numeric or bool → string representation
+}
+
+/// Null-safe accessor for int fields.
+inline int jint(const nlohmann::json& obj, const char* key, int fallback = 0)
+{
+    auto it = obj.find(key);
+    if (it == obj.end() || it->is_null()) return fallback;
+    if (it->is_number()) return it->get<int>();
+    if (it->is_string()) {
+        try { return std::stoi(it->get<std::string>()); } catch (...) {}
+    }
+    return fallback;
+}
+
+/// Null-safe accessor for bool fields.
+inline bool jbool(const nlohmann::json& obj, const char* key, bool fallback = false)
+{
+    auto it = obj.find(key);
+    if (it == obj.end() || it->is_null()) return fallback;
+    if (it->is_boolean()) return it->get<bool>();
+    return fallback;
+}
+
 struct Deployment {
     int         id                  = 0;
     std::string name;
@@ -24,27 +55,22 @@ struct Deployment {
 
     static Deployment fromJson(const nlohmann::json& j) {
         Deployment d;
-        auto attr = j.value("attributes", j);
-        if (j.contains("id")) {
-            if (j["id"].is_number())
-                d.id = j["id"].get<int>();
-            else if (j["id"].is_string())
-                try { d.id = std::stoi(j["id"].get<std::string>()); } catch (...) {}
-        }
-        d.name                 = attr.value("name", "");
-        d.environment_name     = attr.value("environment_name", "");
-        d.stack_name           = attr.value("stack_name", "");
-        d.pipeline_name        = attr.value("pipeline_name", "");
-        d.target               = attr.value("target", "DockerCompose");
-        d.provider             = attr.value("provider", "Local");
-        d.status               = attr.value("status", "Pending");
-        d.deployed_by          = attr.value("deployed_by", "");
-        d.deployed_at          = attr.value("deployed_at", "");
-        d.finished_at          = attr.value("finished_at", "");
-        d.compose_content      = attr.value("compose_content", "");
-        d.compose_project_name = attr.value("compose_project_name", "");
-        d.version_label        = attr.value("version_label", "");
-        d.notes                = attr.value("notes", "");
+        auto attr = j.contains("attributes") ? j["attributes"] : j;
+        d.id                   = jint(j, "id");
+        d.name                 = jstr(attr, "name");
+        d.environment_name     = jstr(attr, "environment_name");
+        d.stack_name           = jstr(attr, "stack_name");
+        d.pipeline_name        = jstr(attr, "pipeline_name");
+        d.target               = jstr(attr, "target", "DockerCompose");
+        d.provider             = jstr(attr, "provider", "Local");
+        d.status               = jstr(attr, "status", "Pending");
+        d.deployed_by          = jstr(attr, "deployed_by");
+        d.deployed_at          = jstr(attr, "deployed_at");
+        d.finished_at          = jstr(attr, "finished_at");
+        d.compose_content      = jstr(attr, "compose_content");
+        d.compose_project_name = jstr(attr, "compose_project_name");
+        d.version_label        = jstr(attr, "version_label");
+        d.notes                = jstr(attr, "notes");
         return d;
     }
 
