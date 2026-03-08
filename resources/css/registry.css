@@ -48,6 +48,10 @@
     white-space: nowrap;
 }
 
+.table-striped > tbody > tr:nth-of-type(odd) > * {
+    --bs-table-bg-type: #f8f9fa;
+}
+
 /* ── Badges ──────────────────────────────────────────────────────────────── */
 
 .badge {
