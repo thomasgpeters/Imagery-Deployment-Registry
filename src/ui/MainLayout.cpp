@@ -78,7 +78,7 @@ void MainLayout::buildContent()
 
     // Content
     rightCol->addWidget(std::unique_ptr<Wt::WStackedWidget>(content_));
-    content_->setStyleClass("flex-grow-1 overflow-auto p-4");
+    content_->setStyleClass("flex-grow-1 overflow-auto p-4 dr-content-area");
 }
 
 // ---------------------------------------------------------------------------
