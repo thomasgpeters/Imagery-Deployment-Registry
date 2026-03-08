@@ -24,6 +24,7 @@ public:
     using StatusCallback = std::function<void(bool ok)>;
 
     explicit AlsClient(const std::string& apiBaseUrl);
+    ~AlsClient();
 
     const std::string& baseUrl() const { return baseUrl_; }
     void setBaseUrl(const std::string& url) { baseUrl_ = url; }
@@ -62,6 +63,10 @@ private:
 
     std::string baseUrl_;
     std::vector<std::shared_ptr<Wt::Http::Client>> activeClients_;
+
+    /// Shared alive flag — destroyed (and set to false) when AlsClient dies.
+    /// Lambdas capture a weak_ptr copy so they can detect destruction.
+    std::shared_ptr<bool> alive_ = std::make_shared<bool>(true);
 };
 
 } // namespace dr::api
