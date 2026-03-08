@@ -32,6 +32,11 @@ public:
     /// GET /api/{resource} — fetch all items.
     void getAll(const std::string& resource, ListCallback cb);
 
+    /// GET /api/{resource}?filter[key]=value — fetch filtered items.
+    void getAll(const std::string& resource,
+                const std::string& filterKey, int filterValue,
+                ListCallback cb);
+
     /// GET /api/{resource}/{id} — fetch one item.
     void getOne(const std::string& resource, int id, ItemCallback cb);
 

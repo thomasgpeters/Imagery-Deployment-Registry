@@ -134,114 +134,96 @@ void DeploymentDetailView::fetchChildResources(int deploymentId)
     std::weak_ptr<bool> weak = alive_;
 
     // Images
-    client_.getAll("DeploymentImage",
-        [this, deploymentId, weak](bool ok, const nlohmann::json& items) {
+    client_.getAll("DeploymentImage", "deployment_id", deploymentId,
+        [this, weak](bool ok, const nlohmann::json& items) {
             auto guard = weak.lock();
             if (!guard || !*guard) return;
             auto* app = Wt::WApplication::instance();
             if (!app) return;
             std::vector<model::DeploymentImage> images;
             if (ok) {
-                for (const auto& it : items) {
-                    auto img = model::DeploymentImage::fromJson(it);
-                    if (img.deployment_id == deploymentId)
-                        images.push_back(img);
-                }
+                for (const auto& it : items)
+                    images.push_back(model::DeploymentImage::fromJson(it));
             }
             populateImages(images);
             app->triggerUpdate();
         });
 
     // Ports
-    client_.getAll("DeploymentPort",
-        [this, deploymentId, weak](bool ok, const nlohmann::json& items) {
+    client_.getAll("DeploymentPort", "deployment_id", deploymentId,
+        [this, weak](bool ok, const nlohmann::json& items) {
             auto guard = weak.lock();
             if (!guard || !*guard) return;
             auto* app = Wt::WApplication::instance();
             if (!app) return;
             std::vector<model::DeploymentPort> ports;
             if (ok) {
-                for (const auto& it : items) {
-                    auto p = model::DeploymentPort::fromJson(it);
-                    if (p.deployment_id == deploymentId)
-                        ports.push_back(p);
-                }
+                for (const auto& it : items)
+                    ports.push_back(model::DeploymentPort::fromJson(it));
             }
             populatePorts(ports);
             app->triggerUpdate();
         });
 
     // Env Vars
-    client_.getAll("DeploymentEnvVar",
-        [this, deploymentId, weak](bool ok, const nlohmann::json& items) {
+    client_.getAll("DeploymentEnvVar", "deployment_id", deploymentId,
+        [this, weak](bool ok, const nlohmann::json& items) {
             auto guard = weak.lock();
             if (!guard || !*guard) return;
             auto* app = Wt::WApplication::instance();
             if (!app) return;
             std::vector<model::DeploymentEnvVar> vars;
             if (ok) {
-                for (const auto& it : items) {
-                    auto v = model::DeploymentEnvVar::fromJson(it);
-                    if (v.deployment_id == deploymentId)
-                        vars.push_back(v);
-                }
+                for (const auto& it : items)
+                    vars.push_back(model::DeploymentEnvVar::fromJson(it));
             }
             populateEnvVars(vars);
             app->triggerUpdate();
         });
 
     // Health
-    client_.getAll("DeploymentHealth",
-        [this, deploymentId, weak](bool ok, const nlohmann::json& items) {
+    client_.getAll("DeploymentHealth", "deployment_id", deploymentId,
+        [this, weak](bool ok, const nlohmann::json& items) {
             auto guard = weak.lock();
             if (!guard || !*guard) return;
             auto* app = Wt::WApplication::instance();
             if (!app) return;
             std::vector<model::DeploymentHealth> checks;
             if (ok) {
-                for (const auto& it : items) {
-                    auto h = model::DeploymentHealth::fromJson(it);
-                    if (h.deployment_id == deploymentId)
-                        checks.push_back(h);
-                }
+                for (const auto& it : items)
+                    checks.push_back(model::DeploymentHealth::fromJson(it));
             }
             populateHealth(checks);
             app->triggerUpdate();
         });
 
     // Targets
-    client_.getAll("DeploymentTarget",
-        [this, deploymentId, weak](bool ok, const nlohmann::json& items) {
+    client_.getAll("DeploymentTarget", "deployment_id", deploymentId,
+        [this, weak](bool ok, const nlohmann::json& items) {
             auto guard = weak.lock();
             if (!guard || !*guard) return;
             auto* app = Wt::WApplication::instance();
             if (!app) return;
             std::vector<model::DeploymentTarget> targets;
             if (ok) {
-                for (const auto& it : items) {
-                    auto t = model::DeploymentTarget::fromJson(it);
-                    if (t.deployment_id == deploymentId)
-                        targets.push_back(t);
-                }
+                for (const auto& it : items)
+                    targets.push_back(model::DeploymentTarget::fromJson(it));
             }
             populateTargets(targets);
             app->triggerUpdate();
         });
 
     // Audit Log
-    client_.getAll("DeploymentLog",
-        [this, deploymentId, weak](bool ok, const nlohmann::json& items) {
+    client_.getAll("DeploymentLog", "deployment_id", deploymentId,
+        [this, weak](bool ok, const nlohmann::json& items) {
             auto guard = weak.lock();
             if (!guard || !*guard) return;
             auto* app = Wt::WApplication::instance();
             if (!app) return;
             std::vector<model::DeploymentLog> logs;
             if (ok) {
-                for (const auto& it : items) {
-                    auto l = model::DeploymentLog::fromJson(it);
-                    if (l.deployment_id == deploymentId)
-                        logs.push_back(l);
-                }
+                for (const auto& it : items)
+                    logs.push_back(model::DeploymentLog::fromJson(it));
             }
             populateAuditLog(logs);
             app->triggerUpdate();

@@ -22,6 +22,10 @@ from database import models                       # type: ignore – ALS generat
 def declare_logic():
     """Called once at ALS startup to register rules with LogicBank."""
 
+    # ── Normalize timezone-aware datetimes before ALS's strptime parser ───
+    Rule.early_row_event(on_class=models.Deployment,
+                         calling=_normalize_datetimes)
+
     # ── After INSERT — new deployment arrives from VCP ────────────────────
     Rule.after_insert(
         calling=_on_deployment_created,
@@ -91,6 +95,28 @@ def _on_deployment_deleted(row, old_row, logic_row):
 
 
 # ---------------------------------------------------------------------------
+# Datetime normalisation
+# ---------------------------------------------------------------------------
+
+def _normalize_datetimes(row, old_row, logic_row):
+    """Convert timezone-aware datetime strings to proper Python datetimes.
+
+    ALS's default strptime uses ``%Y-%m-%d %H:%M:%S`` which chokes on the
+    ``+00:00`` suffix that VCP sends.  We parse the value with
+    ``fromisoformat()`` (handles both ``+00:00`` and ``Z`` suffixes) so
+    SQLAlchemy receives a real datetime object instead of an unparseable
+    string.
+    """
+    for col in ("deployed_at", "finished_at"):
+        val = getattr(row, col, None)
+        if isinstance(val, str) and val:
+            try:
+                setattr(row, col, _dt.datetime.fromisoformat(val))
+            except (ValueError, TypeError):
+                pass  # leave as-is; let ALS apply its own fallback
+
+
+# ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
 
@@ -102,5 +128,5 @@ def _write_log(*, logic_row, deployment_id, action, status, message, created_by)
     log_entry.status        = status
     log_entry.message       = message
     log_entry.created_by    = created_by
-    log_entry.created_at    = _dt.datetime.now(_dt.timezone.utc)
+    log_entry.created_at    = _dt.datetime.utcnow()
     logic_row.session.add(log_entry)

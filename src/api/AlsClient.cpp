@@ -151,6 +151,35 @@ void AlsClient::getAll(const std::string& resource, ListCallback cb)
     });
 }
 
+void AlsClient::getAll(const std::string& resource,
+                        const std::string& filterKey, int filterValue,
+                        ListCallback cb)
+{
+    if (!cb) return;
+    std::string url = baseUrl_ + "/" + resource
+        + "/?filter%5B" + filterKey + "%5D=" + std::to_string(filterValue)
+        + "&page%5Boffset%5D=0&page%5Blimit%5D=1000";
+
+    asyncGet(url, [cb](bool ok, const std::string& body) {
+        if (!ok) {
+            cb(false, njson::array());
+            return;
+        }
+        try {
+            auto j = njson::parse(body);
+            if (j.contains("data") && j["data"].is_array()) {
+                cb(true, j["data"]);
+            } else if (j.is_array()) {
+                cb(true, j);
+            } else {
+                cb(false, njson::array());
+            }
+        } catch (...) {
+            cb(false, njson::array());
+        }
+    });
+}
+
 // ---------------------------------------------------------------------------
 // getOne
 // ---------------------------------------------------------------------------

@@ -11,9 +11,18 @@ namespace dr {
 
 MainLayout::MainLayout()
 {
-    // Pick up ALS URL from environment if set
-    if (const char* url = std::getenv("ALS_URL"))
+    // Pick up ALS connection from environment (matches scripts/env.sh)
+    if (const char* url = std::getenv("ALS_URL")) {
         alsClient_.setBaseUrl(url);
+    } else {
+        const char* host = std::getenv("ALS_HOST");
+        const char* port = std::getenv("ALS_PORT");
+        if (host || port) {
+            alsClient_.setBaseUrl(
+                "http://" + std::string(host ? host : "localhost")
+                + ":" + std::string(port ? port : "5670") + "/api");
+        }
+    }
 
     setStyleClass("d-flex flex-grow-1 overflow-hidden");
 
