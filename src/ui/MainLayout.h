@@ -41,6 +41,8 @@ private:
 
     DeploymentListView*   listView_   = nullptr;
     DeploymentDetailView* detailView_ = nullptr;
+
+    bool handlingPath_ = false;   // re-entrancy guard
 };
 
 } // namespace dr
