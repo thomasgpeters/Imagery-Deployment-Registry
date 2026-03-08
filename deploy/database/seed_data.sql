@@ -17,19 +17,61 @@
 -- ────────────────────────────────────────────────────────────────────────────
 
 INSERT INTO deployment (
-    environment_name, stack_name, pipeline_name,
+    name, environment_name, stack_name, pipeline_name,
     target, provider, status,
     deployed_by, deployed_at, finished_at,
     compose_project_name, version_label, notes
 )
 SELECT
-    'dev-local', 'als-three-tier', 'default',
+    'student-onboarding', 'dev-local', 'als-three-tier', 'default',
     'DockerCompose', 'Local', 'Running',
     'admin', '2026-02-12 11:55:00+00'::timestamptz, '2026-02-12 11:55:45+00'::timestamptz,
-    'vcp-dev', 'v0.9.1', 'Initial three-tier stack deployment for local development'
+    'vcp-dev', 'v0.9.1', 'Student onboarding portal — three-tier stack for local development'
 WHERE NOT EXISTS (
     SELECT 1 FROM deployment
-    WHERE environment_name = 'dev-local' AND stack_name = 'als-three-tier'
+    WHERE name = 'student-onboarding'
+    LIMIT 1
+);
+
+-- ────────────────────────────────────────────────────────────────────────────
+-- DEPLOYMENT — faculty-portal → staging (DockerCompose / ApiInABox)
+-- ────────────────────────────────────────────────────────────────────────────
+
+INSERT INTO deployment (
+    name, environment_name, stack_name, pipeline_name,
+    target, provider, status,
+    deployed_by, deployed_at, finished_at,
+    compose_project_name, version_label, notes
+)
+SELECT
+    'faculty-portal', 'staging', 'als-three-tier', 'ci-main',
+    'DockerCompose', 'ApiInABox', 'Running',
+    'jdoe', '2026-02-20 09:30:00+00'::timestamptz, '2026-02-20 09:31:12+00'::timestamptz,
+    'faculty-stg', 'v1.2.0', 'Faculty portal staging environment — mirrors production config'
+WHERE NOT EXISTS (
+    SELECT 1 FROM deployment
+    WHERE name = 'faculty-portal'
+    LIMIT 1
+);
+
+-- ────────────────────────────────────────────────────────────────────────────
+-- DEPLOYMENT — course-catalog → production (Kubernetes / AKS)
+-- ────────────────────────────────────────────────────────────────────────────
+
+INSERT INTO deployment (
+    name, environment_name, stack_name, pipeline_name,
+    target, provider, status,
+    deployed_by, deployed_at, finished_at,
+    compose_project_name, version_label, notes
+)
+SELECT
+    'course-catalog', 'production', 'als-three-tier', 'release',
+    'Kubernetes', 'AKS', 'Running',
+    'deploy-bot', '2026-03-01 14:00:00+00'::timestamptz, '2026-03-01 14:03:22+00'::timestamptz,
+    '', 'v2.0.3', 'Course catalog service — production AKS cluster'
+WHERE NOT EXISTS (
+    SELECT 1 FROM deployment
+    WHERE name = 'course-catalog'
     LIMIT 1
 );
 

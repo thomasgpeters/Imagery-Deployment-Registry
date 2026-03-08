@@ -105,11 +105,11 @@ void DeploymentDetailView::loadDeployment(int deploymentId)
             }
             auto d = model::Deployment::fromJson(item);
 
-            // Use the VCP Deployment name (compose_project_name) as the title
-            std::string name = d.compose_project_name;
-            if (name.empty())
-                name = "Deployment #" + std::to_string(deploymentId);
-            title_->setText("<h4>" + xmlEscape(name) + "</h4>");
+            // Use the deployment name as the title
+            std::string displayName = d.name;
+            if (displayName.empty())
+                displayName = "Deployment #" + std::to_string(deploymentId);
+            title_->setText("<h4>" + xmlEscape(displayName) + "</h4>");
 
             populateOverview(d);
             populateCompose(d.compose_content);
@@ -247,6 +247,7 @@ void DeploymentDetailView::populateOverview(const model::Deployment& d)
         tbl->elementAt(row, 1)->addNew<Wt::WText>(value);
     };
 
+    addRow("Name",          d.name);
     addRow("Environment",   d.environment_name);
     addRow("Stack",         d.stack_name);
     addRow("Pipeline",      d.pipeline_name);

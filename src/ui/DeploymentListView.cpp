@@ -40,15 +40,16 @@ void DeploymentListView::buildUI()
     table_->setHeaderCount(1);
 
     // Header cells
-    table_->elementAt(0, 0)->addNew<Wt::WText>("Environment");
-    table_->elementAt(0, 1)->addNew<Wt::WText>("Stack");
-    table_->elementAt(0, 2)->addNew<Wt::WText>("Status");
-    table_->elementAt(0, 3)->addNew<Wt::WText>("Target");
-    table_->elementAt(0, 4)->addNew<Wt::WText>("Version");
-    table_->elementAt(0, 5)->addNew<Wt::WText>("Deployed By");
-    table_->elementAt(0, 6)->addNew<Wt::WText>("Deployed At");
+    table_->elementAt(0, 0)->addNew<Wt::WText>("Name");
+    table_->elementAt(0, 1)->addNew<Wt::WText>("Environment");
+    table_->elementAt(0, 2)->addNew<Wt::WText>("Stack");
+    table_->elementAt(0, 3)->addNew<Wt::WText>("Status");
+    table_->elementAt(0, 4)->addNew<Wt::WText>("Target");
+    table_->elementAt(0, 5)->addNew<Wt::WText>("Version");
+    table_->elementAt(0, 6)->addNew<Wt::WText>("Deployed By");
+    table_->elementAt(0, 7)->addNew<Wt::WText>("Deployed At");
 
-    for (int c = 0; c < 7; ++c)
+    for (int c = 0; c < 8; ++c)
         table_->elementAt(0, c)->setStyleClass("fw-bold");
 }
 
@@ -86,21 +87,23 @@ void DeploymentListView::populateTable(const std::vector<model::Deployment>& dep
 
     int row = 1;
     for (const auto& d : deployments) {
-        table_->elementAt(row, 0)->addNew<Wt::WText>(d.environment_name);
-        table_->elementAt(row, 1)->addNew<Wt::WText>(d.stack_name);
+        table_->elementAt(row, 0)->addNew<Wt::WText>(d.name);
+        table_->elementAt(row, 0)->setStyleClass("fw-semibold");
+        table_->elementAt(row, 1)->addNew<Wt::WText>(d.environment_name);
+        table_->elementAt(row, 2)->addNew<Wt::WText>(d.stack_name);
 
-        auto* badge = table_->elementAt(row, 2)->addNew<Wt::WText>(d.status);
+        auto* badge = table_->elementAt(row, 3)->addNew<Wt::WText>(d.status);
         badge->setStyleClass("badge " + statusBadgeClass(d.status));
 
-        table_->elementAt(row, 3)->addNew<Wt::WText>(d.target + " / " + d.provider);
-        table_->elementAt(row, 4)->addNew<Wt::WText>(d.version_label);
-        table_->elementAt(row, 5)->addNew<Wt::WText>(d.deployed_by);
-        table_->elementAt(row, 6)->addNew<Wt::WText>(d.deployed_at);
+        table_->elementAt(row, 4)->addNew<Wt::WText>(d.target + " / " + d.provider);
+        table_->elementAt(row, 5)->addNew<Wt::WText>(d.version_label);
+        table_->elementAt(row, 6)->addNew<Wt::WText>(d.deployed_by);
+        table_->elementAt(row, 7)->addNew<Wt::WText>(d.deployed_at);
 
         // Click row → navigate to detail
         int deployId = d.id;
         table_->rowAt(row)->setStyleClass("cursor-pointer");
-        for (int c = 0; c < 7; ++c) {
+        for (int c = 0; c < 8; ++c) {
             table_->elementAt(row, c)->clicked().connect([this, deployId] {
                 layout_.showDeploymentDetail(deployId);
             });

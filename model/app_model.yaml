@@ -16,29 +16,29 @@ application:
             menu_title: Deployment
             page:
               detail:
-                columns: environment_name,stack_name,pipeline_name,target,provider,status,deployed_by,deployed_at,finished_at,compose_content,compose_project_name,version_label,notes,id
+                columns: name,environment_name,stack_name,pipeline_name,target,provider,status,deployed_by,deployed_at,finished_at,compose_content,compose_project_name,version_label,notes,id
                 include_children: true
                 page_name: detail
                 template_name: detail_template.html
                 title: Deployment
                 typescript_name: detail_component.jinja
-                visible_columns: environment_name,stack_name,pipeline_name,target,provider,status,deployed_by,deployed_at,finished_at,compose_content,compose_project_name,version_label,notes,id
+                visible_columns: name,environment_name,stack_name,pipeline_name,target,provider,status,deployed_by,deployed_at,finished_at,compose_content,compose_project_name,version_label,notes,id
               home:
-                columns: environment_name,stack_name,pipeline_name,target,provider,status,deployed_by,deployed_at,finished_at,compose_content,compose_project_name,version_label,notes,id
+                columns: name,environment_name,stack_name,pipeline_name,target,provider,status,deployed_by,deployed_at,finished_at,compose_content,compose_project_name,version_label,notes,id
                 include_children: true
                 page_name: home
                 template_name: home_template.html
                 title: Deployment
                 typescript_name: home_template.jinja
-                visible_columns: environment_name,stack_name,pipeline_name,target,provider,status,deployed_by,deployed_at,finished_at,compose_content,compose_project_name,version_label,notes,id
+                visible_columns: name,environment_name,stack_name,pipeline_name,target,provider,status,deployed_by,deployed_at,finished_at,compose_content,compose_project_name,version_label,notes,id
               new:
-                columns: environment_name,stack_name,pipeline_name,target,provider,status,deployed_by,deployed_at,finished_at,compose_content,compose_project_name,version_label,notes,id
+                columns: name,environment_name,stack_name,pipeline_name,target,provider,status,deployed_by,deployed_at,finished_at,compose_content,compose_project_name,version_label,notes,id
                 include_children: true
                 page_name: new
                 template_name: new_template.html
                 title: Deployment
                 typescript_name: new_component.jinja
-                visible_columns: environment_name,stack_name,pipeline_name,target,provider,status,deployed_by,deployed_at,finished_at,compose_content,compose_project_name,version_label,notes,id
+                visible_columns: name,environment_name,stack_name,pipeline_name,target,provider,status,deployed_by,deployed_at,finished_at,compose_content,compose_project_name,version_label,notes,id
             template_name: module.jinja
           DeploymentEnvVar:
             icon: edit_square
@@ -228,6 +228,13 @@ authentication: '{system-default}'
 entities:
   Deployment:
     columns:
+    - label: ' name*'
+      name: name
+      required: true
+      search: true
+      sort: true
+      template: text
+      type: VARCHAR
     - label: ' environment_name*'
       name: environment_name
       required: true
@@ -283,7 +290,7 @@ entities:
     - name: id
       template: integer
       type: INTEGER
-    favorite: environment_name
+    favorite: name
     hidden: {}
     label: Deployment
     primary_key:
