@@ -9,6 +9,27 @@
 
 namespace dr {
 
+namespace {
+
+/// Minimal HTML-encode for user-supplied text embedded in XHTML literals.
+std::string htmlEncode(const std::string& s) {
+    std::string out;
+    out.reserve(s.size());
+    for (char c : s) {
+        switch (c) {
+            case '&':  out += "&amp;";  break;
+            case '<':  out += "&lt;";   break;
+            case '>':  out += "&gt;";   break;
+            case '"':  out += "&quot;"; break;
+            case '\'': out += "&#39;";  break;
+            default:   out += c;        break;
+        }
+    }
+    return out;
+}
+
+} // anonymous namespace
+
 DeploymentListView::DeploymentListView(api::AlsClient& client, MainLayout& layout)
     : client_(client), layout_(layout)
 {
@@ -204,7 +225,7 @@ void DeploymentListView::populateGrid(const std::vector<model::Deployment>& depl
 
         int deployId = d.id;
         auto* nameLink = nameBlock->addNew<Wt::WText>(
-            "<span class='dr-deploy-name'>" + Wt::WWebWidget::htmlText(d.name)
+            "<span class='dr-deploy-name'>" + htmlEncode(d.name)
             + "</span>", Wt::TextFormat::XHTML);
         nameLink->setStyleClass("d-block");
         nameLink->clicked().connect([this, deployId] {
@@ -226,7 +247,7 @@ void DeploymentListView::populateGrid(const std::vector<model::Deployment>& depl
             info->addNew<Wt::WText>(
                 "<div class='dr-info-row'>"
                 "<span class='dr-info-label'>" + label + "</span>"
-                "<span class='dr-info-value'>" + Wt::WWebWidget::htmlText(value) + "</span>"
+                "<span class='dr-info-value'>" + htmlEncode(value) + "</span>"
                 "</div>", Wt::TextFormat::XHTML);
         };
 
@@ -256,7 +277,7 @@ void DeploymentListView::populateTable(const std::vector<model::Deployment>& dep
 
         int deployId = d.id;
         auto* nameText = table_->elementAt(row, 1)->addNew<Wt::WText>(
-            "<span class='dr-deploy-name'>" + Wt::WWebWidget::htmlText(d.name)
+            "<span class='dr-deploy-name'>" + htmlEncode(d.name)
             + "</span>", Wt::TextFormat::XHTML);
         nameText->clicked().connect([this, deployId] {
             layout_.showDeploymentDetail(deployId);
