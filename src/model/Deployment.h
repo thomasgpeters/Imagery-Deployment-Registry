@@ -56,7 +56,7 @@ struct Deployment {
     static Deployment fromJson(const nlohmann::json& j) {
         Deployment d;
         auto attr = j.contains("attributes") ? j["attributes"] : j;
-        d.id                   = jint(j, "id");
+        d.id                   = jint(j, "id", jint(attr, "id"));
         d.name                 = jstr(attr, "name");
         d.environment_name     = jstr(attr, "environment_name");
         d.stack_name           = jstr(attr, "stack_name");
@@ -81,6 +81,8 @@ struct Deployment {
         if (!stack_name.empty() && !environment_name.empty())
             return stack_name + " / " + environment_name;
         if (!stack_name.empty()) return stack_name;
+        if (!environment_name.empty()) return environment_name;
+        if (!pipeline_name.empty()) return pipeline_name;
         return "Deployment #" + std::to_string(id);
     }
 
