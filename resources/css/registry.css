@@ -137,6 +137,7 @@ pre.bg-dark {
 }
 
 .dr-deploy-card {
+    position: relative;
     background-color: #ffffff;
     border-radius: 0.75rem;
     padding: 1.25rem;
@@ -152,6 +153,14 @@ pre.bg-dark {
 .dr-deploy-icon {
     flex-shrink: 0;
     line-height: 0;
+    cursor: pointer;
+    opacity: 0.85;
+    transition: opacity 0.15s, transform 0.15s;
+}
+
+.dr-deploy-icon:hover {
+    opacity: 1;
+    transform: scale(1.1);
 }
 
 .dr-deploy-name {
@@ -193,10 +202,6 @@ pre.bg-dark {
 }
 
 /* ── Card trash icon — floated top-right ─────────────────────────────────── */
-
-.dr-deploy-card {
-    position: relative;
-}
 
 .dr-card-trash-wrap {
     position: absolute;
