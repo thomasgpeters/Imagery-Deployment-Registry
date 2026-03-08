@@ -36,6 +36,9 @@ private:
     /// Returns the Bootstrap badge class for a deployment status.
     static std::string statusBadgeClass(const std::string& status);
 
+    /// Returns an inline SVG icon for the deployment target (Docker or K8s).
+    static std::string targetIcon(const std::string& target);
+
     api::AlsClient& client_;
     MainLayout& layout_;
 
