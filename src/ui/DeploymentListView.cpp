@@ -218,10 +218,21 @@ void DeploymentListView::populateGrid(const std::vector<model::Deployment>& depl
     grid_->clear();
 
     for (const auto& d : deployments) {
+        int deployId = d.id;
+
         auto* card = grid_->addNew<Wt::WContainerWidget>();
         card->setStyleClass("dr-deploy-card");
 
-        // Top row: icon + name + status badge
+        // Trash icon floated top-right
+        auto* trashBtn = card->addNew<Wt::WText>(
+            "<i class='bi bi-trash dr-card-trash'></i>",
+            Wt::TextFormat::XHTML);
+        trashBtn->setStyleClass("dr-card-trash-wrap");
+        trashBtn->clicked().connect([this, deployId] {
+            confirmDelete(deployId);
+        });
+
+        // Main row: icon + name + status badge
         auto* topRow = card->addNew<Wt::WContainerWidget>();
         topRow->setStyleClass("d-flex align-items-center gap-3 mb-3");
 
@@ -232,7 +243,6 @@ void DeploymentListView::populateGrid(const std::vector<model::Deployment>& depl
         auto* nameBlock = topRow->addNew<Wt::WContainerWidget>();
         nameBlock->setStyleClass("flex-grow-1 overflow-hidden");
 
-        int deployId = d.id;
         auto* nameLink = nameBlock->addNew<Wt::WText>(
             "<span class='dr-deploy-name'>" + htmlEncode(d.displayName())
             + "</span>", Wt::TextFormat::XHTML);
@@ -244,18 +254,8 @@ void DeploymentListView::populateGrid(const std::vector<model::Deployment>& depl
         auto* envText = nameBlock->addNew<Wt::WText>(d.environment_name);
         envText->setStyleClass("text-muted small d-block text-truncate");
 
-        auto* rightGroup = topRow->addNew<Wt::WContainerWidget>();
-        rightGroup->setStyleClass("ms-auto d-flex align-items-center gap-2 flex-shrink-0");
-
-        auto* badge = rightGroup->addNew<Wt::WText>(d.status);
-        badge->setStyleClass("badge " + statusBadgeClass(d.status));
-
-        auto* trashBtn = rightGroup->addNew<Wt::WText>(
-            "<i class='bi bi-trash text-danger' style='cursor:pointer;font-size:1rem;'></i>",
-            Wt::TextFormat::XHTML);
-        trashBtn->clicked().connect([this, deployId] {
-            confirmDelete(deployId);
-        });
+        auto* badge = topRow->addNew<Wt::WText>(d.status);
+        badge->setStyleClass("badge " + statusBadgeClass(d.status) + " ms-auto flex-shrink-0");
 
         // Info rows
         auto* info = card->addNew<Wt::WContainerWidget>();
@@ -314,10 +314,10 @@ void DeploymentListView::populateTable(const std::vector<model::Deployment>& dep
         table_->elementAt(row, 7)->addNew<Wt::WText>(d.deployed_by);
         table_->elementAt(row, 8)->addNew<Wt::WText>(d.deployed_at);
 
-        auto* rowTrash = table_->elementAt(row, 9)->addNew<Wt::WText>(
-            "<i class='bi bi-trash text-danger' style='cursor:pointer;'></i>",
-            Wt::TextFormat::XHTML);
-        table_->elementAt(row, 9)->setStyleClass("text-center");
+        auto* trashCell = table_->elementAt(row, 9);
+        trashCell->setStyleClass("dr-trash-cell");
+        auto* rowTrash = trashCell->addNew<Wt::WText>(
+            "<i class='bi bi-trash'></i>", Wt::TextFormat::XHTML);
         rowTrash->clicked().connect([this, deployId] {
             confirmDelete(deployId);
         });
