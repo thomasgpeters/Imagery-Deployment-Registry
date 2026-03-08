@@ -283,9 +283,12 @@ void DeploymentListView::populateTable(const std::vector<model::Deployment>& dep
             targetIcon(d.target, 24), Wt::TextFormat::XHTML);
         table_->elementAt(row, 0)->setStyleClass("text-center");
 
-        table_->elementAt(row, 1)->addNew<Wt::WText>(
+        auto* nameText = table_->elementAt(row, 1)->addNew<Wt::WText>(
             "<span class='dr-deploy-name'>" + htmlEncode(d.displayName())
             + "</span>", Wt::TextFormat::XHTML);
+        nameText->clicked().connect([this, deployId] {
+            layout_.showDeploymentDetail(deployId);
+        });
 
         table_->elementAt(row, 2)->addNew<Wt::WText>(d.environment_name);
         table_->elementAt(row, 3)->addNew<Wt::WText>(d.stack_name);
@@ -297,15 +300,6 @@ void DeploymentListView::populateTable(const std::vector<model::Deployment>& dep
         table_->elementAt(row, 6)->addNew<Wt::WText>(d.version_label);
         table_->elementAt(row, 7)->addNew<Wt::WText>(d.deployed_by);
         table_->elementAt(row, 8)->addNew<Wt::WText>(d.deployed_at);
-
-        // Make each cell in the row clickable
-        for (int c = 0; c < 9; ++c) {
-            auto* cell = table_->elementAt(row, c);
-            cell->setStyleClass(cell->styleClass() + " cursor-pointer");
-            cell->clicked().connect([this, deployId] {
-                layout_.showDeploymentDetail(deployId);
-            });
-        }
 
         ++row;
     }
