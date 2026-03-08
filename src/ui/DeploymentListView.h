@@ -20,7 +20,7 @@ public:
     ~DeploymentListView() override;
 
     /// Fetch deployments from ALS and rebuild the table.
-    void refresh() override;
+    void reload();
 
 private:
     void buildUI();

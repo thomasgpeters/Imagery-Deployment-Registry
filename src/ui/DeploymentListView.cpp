@@ -31,7 +31,7 @@ void DeploymentListView::buildUI()
         "<button class='btn btn-outline-primary btn-sm'>"
         "<i class='bi bi-arrow-clockwise me-1'></i>Refresh</button>",
         Wt::TextFormat::XHTML);
-    refreshBtn->clicked().connect([this] { refresh(); });
+    refreshBtn->clicked().connect([this] { reload(); });
 
     // Status line
     status_ = addNew<Wt::WText>("");
@@ -58,10 +58,8 @@ void DeploymentListView::buildUI()
         table_->elementAt(0, c)->setStyleClass("fw-bold");
 }
 
-void DeploymentListView::refresh()
+void DeploymentListView::reload()
 {
-    Wt::WContainerWidget::refresh();   // base-class housekeeping
-
     status_->setText("Loading...");
 
     std::weak_ptr<bool> weak = alive_;
