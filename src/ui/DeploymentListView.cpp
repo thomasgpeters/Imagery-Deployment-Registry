@@ -60,6 +60,8 @@ void DeploymentListView::buildUI()
 
 void DeploymentListView::refresh()
 {
+    Wt::WContainerWidget::refresh();   // base-class housekeeping
+
     status_->setText("Loading...");
 
     std::weak_ptr<bool> weak = alive_;
@@ -68,8 +70,8 @@ void DeploymentListView::refresh()
         if (!guard || !*guard) return;
         auto* app = Wt::WApplication::instance();
         if (!app) return;
-        Wt::WApplication::UpdateLock lock(app);
-        if (!lock) return;
+        // Note: no UpdateLock — Http::Client done() fires inside the
+        // application's event loop which already holds the session lock.
 
         if (!ok) {
             status_->setText("Failed to fetch deployments from ALS backend.");
