@@ -46,12 +46,12 @@ void AlsClient::asyncGet(const std::string& url,
             if (!guard || !*guard) return;
             int status = ec ? 0 : msg.status();
             bool ok = (!ec && status >= 200 && status < 300);
-            std::string body = ok ? msg.body() : std::string();
-            if (!ok) {
-                Wt::log("error") << "AlsClient GET " << url
-                    << " failed: ec=" << ec.message()
-                    << " status=" << status;
-            }
+            std::string body = !ec ? msg.body() : std::string();
+            Wt::log("info") << "AlsClient GET " << url
+                << " done: ec=" << ec.message()
+                << " status=" << status
+                << " bodyLen=" << body.size()
+                << " bodyPrefix=" << body.substr(0, 120);
             retireClient(raw);
             handler(ok, body);
         });
@@ -148,21 +148,29 @@ void AlsClient::getAll(const std::string& resource, ListCallback cb)
     // RFC 3986 and may be rejected by Wt's Http::Client URL parser.
     std::string url = baseUrl_ + "/" + resource + "/";
 
-    asyncGet(url, [cb](bool ok, const std::string& body) {
+    asyncGet(url, [cb, resource](bool ok, const std::string& body) {
         if (!ok) {
+            Wt::log("error") << "getAll(" << resource << "): HTTP failed";
             cb(false, njson::array());
             return;
         }
         try {
             auto j = njson::parse(body);
             if (j.contains("data") && j["data"].is_array()) {
+                Wt::log("info") << "getAll(" << resource << "): "
+                    << j["data"].size() << " items";
                 cb(true, j["data"]);
             } else if (j.is_array()) {
                 cb(true, j);
             } else {
+                Wt::log("error") << "getAll(" << resource
+                    << "): unexpected JSON shape";
                 cb(false, njson::array());
             }
-        } catch (...) {
+        } catch (const std::exception& e) {
+            Wt::log("error") << "getAll(" << resource
+                << "): parse error: " << e.what()
+                << " body=" << body.substr(0, 200);
             cb(false, njson::array());
         }
     });
