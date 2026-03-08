@@ -2,6 +2,7 @@
 #include "ui/MainLayout.h"
 
 #include <Wt/WApplication.h>
+#include <Wt/WMessageBox.h>
 #include <Wt/WText.h>
 #include <Wt/WTimer.h>
 
@@ -124,7 +125,9 @@ void DeploymentListView::buildUI()
     table_->elementAt(0, 6)->addNew<Wt::WText>("Version");
     table_->elementAt(0, 7)->addNew<Wt::WText>("Deployed By");
     table_->elementAt(0, 8)->addNew<Wt::WText>("Deployed At");
-    for (int c = 0; c < 9; ++c)
+    table_->elementAt(0, 9)->addNew<Wt::WText>("");
+    table_->elementAt(0, 9)->setWidth(Wt::WLength(36));
+    for (int c = 0; c < 10; ++c)
         table_->elementAt(0, c)->setStyleClass("fw-bold");
 }
 
@@ -241,8 +244,18 @@ void DeploymentListView::populateGrid(const std::vector<model::Deployment>& depl
         auto* envText = nameBlock->addNew<Wt::WText>(d.environment_name);
         envText->setStyleClass("text-muted small d-block text-truncate");
 
-        auto* badge = topRow->addNew<Wt::WText>(d.status);
-        badge->setStyleClass("badge " + statusBadgeClass(d.status) + " ms-auto flex-shrink-0");
+        auto* rightGroup = topRow->addNew<Wt::WContainerWidget>();
+        rightGroup->setStyleClass("ms-auto d-flex align-items-center gap-2 flex-shrink-0");
+
+        auto* badge = rightGroup->addNew<Wt::WText>(d.status);
+        badge->setStyleClass("badge " + statusBadgeClass(d.status));
+
+        auto* trashBtn = rightGroup->addNew<Wt::WText>(
+            "<i class='bi bi-trash text-danger' style='cursor:pointer;font-size:1rem;'></i>",
+            Wt::TextFormat::XHTML);
+        trashBtn->clicked().connect([this, deployId] {
+            confirmDelete(deployId);
+        });
 
         // Info rows
         auto* info = card->addNew<Wt::WContainerWidget>();
@@ -300,6 +313,14 @@ void DeploymentListView::populateTable(const std::vector<model::Deployment>& dep
         table_->elementAt(row, 6)->addNew<Wt::WText>(d.version_label);
         table_->elementAt(row, 7)->addNew<Wt::WText>(d.deployed_by);
         table_->elementAt(row, 8)->addNew<Wt::WText>(d.deployed_at);
+
+        auto* rowTrash = table_->elementAt(row, 9)->addNew<Wt::WText>(
+            "<i class='bi bi-trash text-danger' style='cursor:pointer;'></i>",
+            Wt::TextFormat::XHTML);
+        table_->elementAt(row, 9)->setStyleClass("text-center");
+        rowTrash->clicked().connect([this, deployId] {
+            confirmDelete(deployId);
+        });
 
         ++row;
     }
@@ -396,6 +417,95 @@ std::string DeploymentListView::targetIcon(const std::string& target, int size)
     if (target == "Kubernetes")
         return k8sSvg;
     return genericSvg;
+}
+
+// ---------------------------------------------------------------------------
+// Delete
+// ---------------------------------------------------------------------------
+
+void DeploymentListView::confirmDelete(int deploymentId)
+{
+    auto* msgBox = addChild(std::make_unique<Wt::WMessageBox>(
+        "Delete Deployment",
+        "Are you sure you want to delete this deployment and all its "
+        "related data? This action cannot be undone.",
+        Wt::Icon::Warning,
+        Wt::StandardButton::Yes | Wt::StandardButton::No));
+    msgBox->setModal(true);
+    msgBox->buttonClicked().connect([this, msgBox, deploymentId] {
+        if (msgBox->buttonResult() == Wt::StandardButton::Yes) {
+            executeDelete(deploymentId);
+        }
+        removeChild(msgBox);
+    });
+    msgBox->show();
+}
+
+void DeploymentListView::executeDelete(int deploymentId)
+{
+    status_->setText("Deleting deployment #" + std::to_string(deploymentId) + "...");
+
+    // Number of child resource types to cascade-delete before the parent.
+    auto pending = std::make_shared<int>(6);
+    std::weak_ptr<bool> weak = alive_;
+
+    auto onChildrenDone = [this, deploymentId, pending, weak] {
+        if (--(*pending) > 0) return;
+
+        auto guard = weak.lock();
+        if (!guard || !*guard) return;
+
+        client_.remove("Deployment", deploymentId,
+            [this, weak](bool ok) {
+                auto g = weak.lock();
+                if (!g || !*g) return;
+                auto* a = Wt::WApplication::instance();
+                if (!a) return;
+
+                if (ok) {
+                    reload();
+                } else {
+                    status_->setText("Failed to delete deployment.");
+                }
+                a->triggerUpdate();
+            });
+    };
+
+    static const char* childTypes[] = {
+        "DeploymentImage", "DeploymentPort", "DeploymentEnvVar",
+        "DeploymentHealth", "DeploymentTarget", "DeploymentLog"
+    };
+
+    for (const char* type : childTypes) {
+        client_.getAll(std::string(type), "deployment_id", deploymentId,
+            [this, type = std::string(type), onChildrenDone, weak]
+            (bool ok, const nlohmann::json& items) {
+                auto guard = weak.lock();
+                if (!guard || !*guard) return;
+
+                if (!ok || items.empty()) {
+                    onChildrenDone();
+                    auto* a = Wt::WApplication::instance();
+                    if (a) a->triggerUpdate();
+                    return;
+                }
+
+                auto childPending = std::make_shared<int>(static_cast<int>(items.size()));
+                for (const auto& item : items) {
+                    int childId = model::jint(item, "id");
+                    client_.remove(type, childId,
+                        [childPending, onChildrenDone, weak](bool /*ok*/) {
+                            auto g = weak.lock();
+                            if (!g || !*g) return;
+                            if (--(*childPending) == 0) {
+                                onChildrenDone();
+                            }
+                            auto* a = Wt::WApplication::instance();
+                            if (a) a->triggerUpdate();
+                        });
+                }
+            });
+    }
 }
 
 } // namespace dr

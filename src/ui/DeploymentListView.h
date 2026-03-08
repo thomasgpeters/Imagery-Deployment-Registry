@@ -37,6 +37,10 @@ private:
     /// Toggle between grid and list views.
     void setViewMode(bool gridMode);
 
+    /// Show confirmation dialog and cascade-delete a deployment.
+    void confirmDelete(int deploymentId);
+    void executeDelete(int deploymentId);
+
     static std::string statusBadgeClass(const std::string& status);
     static std::string targetIcon(const std::string& target, int size = 48);
 
