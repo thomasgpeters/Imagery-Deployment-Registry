@@ -192,6 +192,50 @@ pre.bg-dark {
     white-space: nowrap;
 }
 
+/* ── Card trash icon — floated top-right ─────────────────────────────────── */
+
+.dr-deploy-card {
+    position: relative;
+}
+
+.dr-card-trash-wrap {
+    position: absolute;
+    top: 0.75rem;
+    right: 0.75rem;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.15s;
+}
+
+.dr-deploy-card:hover .dr-card-trash-wrap {
+    opacity: 1;
+}
+
+.dr-card-trash {
+    font-size: 1rem;
+    color: #dc3545;
+}
+
+.dr-card-trash:hover {
+    color: #a71d2a;
+}
+
+/* ── Table trash column — right-aligned ──────────────────────────────────── */
+
+.dr-trash-cell {
+    text-align: right;
+    padding-right: 0.75rem !important;
+    cursor: pointer;
+    color: #dc3545;
+    opacity: 0.4;
+    transition: opacity 0.15s;
+}
+
+.dr-trash-cell:hover {
+    opacity: 1;
+    color: #a71d2a;
+}
+
 /* ── Deployment list table (alternative view) ───────────────────────────── */
 
 .dr-deploy-list .table {
