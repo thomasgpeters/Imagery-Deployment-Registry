@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Deployment.h"
+
 #include <nlohmann/json.hpp>
 #include <string>
 
@@ -15,18 +17,13 @@ struct DeploymentEnvVar {
 
     static DeploymentEnvVar fromJson(const nlohmann::json& j) {
         DeploymentEnvVar de;
-        auto attr = j.value("attributes", j);
-        if (j.contains("id")) {
-            if (j["id"].is_number())
-                de.id = j["id"].get<int>();
-            else if (j["id"].is_string())
-                try { de.id = std::stoi(j["id"].get<std::string>()); } catch (...) {}
-        }
-        de.deployment_id = attr.value("deployment_id", 0);
-        de.service_name  = attr.value("service_name", "");
-        de.var_name      = attr.value("var_name", "");
-        de.var_value     = attr.value("var_value", "");
-        de.is_secret     = attr.value("is_secret", false);
+        auto attr = j.contains("attributes") ? j["attributes"] : j;
+        de.id            = jint(j, "id");
+        de.deployment_id = jint(attr, "deployment_id");
+        de.service_name  = jstr(attr, "service_name");
+        de.var_name      = jstr(attr, "var_name");
+        de.var_value     = jstr(attr, "var_value");
+        de.is_secret     = jbool(attr, "is_secret");
         return de;
     }
 

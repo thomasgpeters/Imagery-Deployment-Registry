@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Deployment.h"
+
 #include <nlohmann/json.hpp>
 #include <string>
 
@@ -16,19 +18,14 @@ struct DeploymentLog {
 
     static DeploymentLog fromJson(const nlohmann::json& j) {
         DeploymentLog dl;
-        auto attr = j.value("attributes", j);
-        if (j.contains("id")) {
-            if (j["id"].is_number())
-                dl.id = j["id"].get<int>();
-            else if (j["id"].is_string())
-                try { dl.id = std::stoi(j["id"].get<std::string>()); } catch (...) {}
-        }
-        dl.deployment_id = attr.value("deployment_id", 0);
-        dl.action        = attr.value("action", "");
-        dl.status        = attr.value("status", "Started");
-        dl.message       = attr.value("message", "");
-        dl.created_at    = attr.value("created_at", "");
-        dl.created_by    = attr.value("created_by", "");
+        auto attr = j.contains("attributes") ? j["attributes"] : j;
+        dl.id            = jint(j, "id");
+        dl.deployment_id = jint(attr, "deployment_id");
+        dl.action        = jstr(attr, "action");
+        dl.status        = jstr(attr, "status", "Started");
+        dl.message       = jstr(attr, "message");
+        dl.created_at    = jstr(attr, "created_at");
+        dl.created_by    = jstr(attr, "created_by");
         return dl;
     }
 

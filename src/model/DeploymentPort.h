@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Deployment.h"
+
 #include <nlohmann/json.hpp>
 #include <string>
 
@@ -15,18 +17,13 @@ struct DeploymentPort {
 
     static DeploymentPort fromJson(const nlohmann::json& j) {
         DeploymentPort dp;
-        auto attr = j.value("attributes", j);
-        if (j.contains("id")) {
-            if (j["id"].is_number())
-                dp.id = j["id"].get<int>();
-            else if (j["id"].is_string())
-                try { dp.id = std::stoi(j["id"].get<std::string>()); } catch (...) {}
-        }
-        dp.deployment_id  = attr.value("deployment_id", 0);
-        dp.service_name   = attr.value("service_name", "");
-        dp.container_port = attr.value("container_port", 0);
-        dp.host_port      = attr.value("host_port", 0);
-        dp.protocol       = attr.value("protocol", "tcp");
+        auto attr = j.contains("attributes") ? j["attributes"] : j;
+        dp.id             = jint(j, "id");
+        dp.deployment_id  = jint(attr, "deployment_id");
+        dp.service_name   = jstr(attr, "service_name");
+        dp.container_port = jint(attr, "container_port");
+        dp.host_port      = jint(attr, "host_port");
+        dp.protocol       = jstr(attr, "protocol", "tcp");
         return dp;
     }
 

@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Deployment.h"
+
 #include <nlohmann/json.hpp>
 #include <string>
 
@@ -18,21 +20,16 @@ struct DeploymentTarget {
 
     static DeploymentTarget fromJson(const nlohmann::json& j) {
         DeploymentTarget dt;
-        auto attr = j.value("attributes", j);
-        if (j.contains("id")) {
-            if (j["id"].is_number())
-                dt.id = j["id"].get<int>();
-            else if (j["id"].is_string())
-                try { dt.id = std::stoi(j["id"].get<std::string>()); } catch (...) {}
-        }
-        dt.deployment_id   = attr.value("deployment_id", 0);
-        dt.target_type     = attr.value("target_type", "DockerCompose");
-        dt.provider        = attr.value("provider", "Local");
-        dt.context_name    = attr.value("context_name", "");
-        dt.namespace_name  = attr.value("namespace", "default");
-        dt.compose_file    = attr.value("compose_file", "");
-        dt.project_name    = attr.value("project_name", "");
-        dt.provider_config = attr.value("provider_config", "");
+        auto attr = j.contains("attributes") ? j["attributes"] : j;
+        dt.id              = jint(j, "id");
+        dt.deployment_id   = jint(attr, "deployment_id");
+        dt.target_type     = jstr(attr, "target_type", "DockerCompose");
+        dt.provider        = jstr(attr, "provider", "Local");
+        dt.context_name    = jstr(attr, "context_name");
+        dt.namespace_name  = jstr(attr, "namespace", "default");
+        dt.compose_file    = jstr(attr, "compose_file");
+        dt.project_name    = jstr(attr, "project_name");
+        dt.provider_config = jstr(attr, "provider_config");
         return dt;
     }
 
