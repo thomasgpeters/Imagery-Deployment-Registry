@@ -145,7 +145,10 @@ void AlsClient::cleanupRetired()
 void AlsClient::getAll(const std::string& resource, ListCallback cb)
 {
     if (!cb) return;
-    std::string url = baseUrl_ + "/" + resource + "/?page[offset]=0&page[limit]=1000";
+    // No query params — ALS returns up to 250 rows by default, which
+    // is sufficient.  Brackets in page[offset] query params violate
+    // RFC 3986 and may be rejected by Wt's Http::Client URL parser.
+    std::string url = baseUrl_ + "/" + resource + "/";
 
     asyncGet(url, [cb](bool ok, const std::string& body) {
         if (!ok) {
@@ -172,9 +175,11 @@ void AlsClient::getAll(const std::string& resource,
                         ListCallback cb)
 {
     if (!cb) return;
+    // Percent-encode the brackets for JSON:API filter params.
+    // ALS decodes these server-side.  Wt's Http::Client rejects
+    // literal brackets in query strings (RFC 3986 violation).
     std::string url = baseUrl_ + "/" + resource
-        + "/?filter[" + filterKey + "]=" + std::to_string(filterValue)
-        + "&page[offset]=0&page[limit]=1000";
+        + "/?filter%5B" + filterKey + "%5D=" + std::to_string(filterValue);
 
     asyncGet(url, [cb](bool ok, const std::string& body) {
         if (!ok) {
