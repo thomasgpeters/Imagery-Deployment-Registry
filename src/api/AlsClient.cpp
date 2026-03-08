@@ -138,7 +138,7 @@ void AlsClient::cleanupRetired()
 void AlsClient::getAll(const std::string& resource, ListCallback cb)
 {
     if (!cb) return;
-    std::string url = baseUrl_ + "/" + resource + "/?page%5Boffset%5D=0&page%5Blimit%5D=1000";
+    std::string url = baseUrl_ + "/" + resource + "/?page[offset]=0&page[limit]=1000";
 
     asyncGet(url, [cb](bool ok, const std::string& body) {
         if (!ok) {
@@ -166,8 +166,8 @@ void AlsClient::getAll(const std::string& resource,
 {
     if (!cb) return;
     std::string url = baseUrl_ + "/" + resource
-        + "/?filter%5B" + filterKey + "%5D=" + std::to_string(filterValue)
-        + "&page%5Boffset%5D=0&page%5Blimit%5D=1000";
+        + "/?filter[" + filterKey + "]=" + std::to_string(filterValue)
+        + "&page[offset]=0&page[limit]=1000";
 
     asyncGet(url, [cb](bool ok, const std::string& body) {
         if (!ok) {
@@ -196,7 +196,7 @@ void AlsClient::getAll(const std::string& resource,
 void AlsClient::getOne(const std::string& resource, int id, ItemCallback cb)
 {
     if (!cb) return;
-    std::string url = baseUrl_ + "/" + resource + "/" + std::to_string(id);
+    std::string url = baseUrl_ + "/" + resource + "/" + std::to_string(id) + "/";
 
     asyncGet(url, [cb](bool ok, const std::string& body) {
         if (!ok) {
@@ -262,7 +262,7 @@ void AlsClient::update(const std::string& resource, int id,
                         ItemCallback cb)
 {
     if (!cb) return;
-    std::string url = baseUrl_ + "/" + resource + "/" + std::to_string(id);
+    std::string url = baseUrl_ + "/" + resource + "/" + std::to_string(id) + "/";
 
     njson payload = {
         {"data", {
