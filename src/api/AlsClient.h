@@ -7,7 +7,9 @@
 #include <nlohmann/json.hpp>
 
 #include <functional>
+#include <memory>
 #include <string>
+#include <vector>
 
 namespace dr::api {
 
@@ -54,7 +56,12 @@ private:
                       const std::string& body,
                       std::function<void(bool ok, int status, const std::string& responseBody)> handler);
 
+    /// Remove a completed client from the active list, breaking the
+    /// shared_ptr cycle so it can be freed.
+    void retireClient(Wt::Http::Client* raw);
+
     std::string baseUrl_;
+    std::vector<std::shared_ptr<Wt::Http::Client>> activeClients_;
 };
 
 } // namespace dr::api
