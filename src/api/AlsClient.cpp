@@ -34,6 +34,8 @@ void AlsClient::asyncGet(const std::string& url,
     auto client = std::make_shared<Wt::Http::Client>();
     client->setTimeout(std::chrono::seconds(10));
     client->setMaximumResponseSize(16 * 1024 * 1024);
+    client->setFollowRedirect(true);
+    client->setMaxRedirects(5);
 
     auto* raw = client.get();
     activeClients_.push_back(std::move(client));
@@ -44,19 +46,24 @@ void AlsClient::asyncGet(const std::string& url,
                                         const Wt::Http::Message& msg) {
             auto guard = weak.lock();
             if (!guard || !*guard) return;
-            bool ok = (!ec && msg.status() == 200);
+            int status = ec ? 0 : msg.status();
+            bool ok = (!ec && status >= 200 && status < 300);
             std::string body = ok ? msg.body() : std::string();
             if (!ok) {
                 Wt::log("error") << "AlsClient GET " << url
                     << " failed: ec=" << ec.message()
-                    << " status=" << (ec ? 0 : msg.status());
+                    << " status=" << status;
             }
             retireClient(raw);
             handler(ok, body);
         });
 
+    // SAFRS/ALS requires Accept header to return JSON instead of HTML
+    Wt::Http::Message headers;
+    headers.addHeader("Accept", "application/json");
+
     Wt::log("info") << "AlsClient GET " << url;
-    if (!raw->get(url)) {
+    if (!raw->get(url, headers)) {
         Wt::log("error") << "AlsClient: Http::Client::get() returned false"
                           << " for URL: " << url;
         retireClient(raw);
