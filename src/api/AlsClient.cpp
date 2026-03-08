@@ -31,15 +31,15 @@ void AlsClient::asyncGet(const std::string& url,
     client->setTimeout(std::chrono::seconds(10));
     client->setMaximumResponseSize(16 * 1024 * 1024);
 
-    // Keep the client alive in our list; the raw pointer lets the lambda
-    // reference it without preventing cleanup.
+    // Keep the client alive in our list; capture a shared_ptr copy in the
+    // lambda so the Http::Client outlives its own done() signal emission.
     auto* raw = client.get();
-    activeClients_.push_back(std::move(client));
+    activeClients_.push_back(client);   // first ref — in the vector
 
     std::weak_ptr<bool> weak = alive_;
     raw->done().connect(
-        [this, handler, raw, weak](Wt::AsioWrapper::error_code ec,
-                                   const Wt::Http::Message& msg) {
+        [this, handler, client, weak](Wt::AsioWrapper::error_code ec,
+                                      const Wt::Http::Message& msg) {
             auto guard = weak.lock();
             if (!guard || !*guard) return;   // AlsClient already destroyed
             if (!ec && msg.status() == 200) {
@@ -47,7 +47,8 @@ void AlsClient::asyncGet(const std::string& url,
             } else {
                 handler(false, "");
             }
-            retireClient(raw);
+            retireClient(client.get());
+            // 'client' shared_ptr keeps Http::Client alive until lambda returns
         });
 
     raw->get(url);
@@ -73,12 +74,12 @@ void AlsClient::asyncRequest(const std::string& method,
         msg.addBodyText(body);
 
     auto* raw = client.get();
-    activeClients_.push_back(std::move(client));
+    activeClients_.push_back(client);   // first ref — in the vector
 
     std::weak_ptr<bool> weak = alive_;
     raw->done().connect(
-        [this, handler, raw, weak](Wt::AsioWrapper::error_code ec,
-                                   const Wt::Http::Message& response) {
+        [this, handler, client, weak](Wt::AsioWrapper::error_code ec,
+                                      const Wt::Http::Message& response) {
             auto guard = weak.lock();
             if (!guard || !*guard) return;   // AlsClient already destroyed
             if (!ec) {
@@ -87,7 +88,8 @@ void AlsClient::asyncRequest(const std::string& method,
             } else {
                 handler(false, 0, "");
             }
-            retireClient(raw);
+            retireClient(client.get());
+            // 'client' shared_ptr keeps Http::Client alive until lambda returns
         });
 
     if (method == "POST")
