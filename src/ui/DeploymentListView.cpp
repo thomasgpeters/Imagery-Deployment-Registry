@@ -239,6 +239,9 @@ void DeploymentListView::populateGrid(const std::vector<model::Deployment>& depl
         auto* iconWrap = topRow->addNew<Wt::WText>(
             targetIcon(d.target, 48), Wt::TextFormat::XHTML);
         iconWrap->setStyleClass("dr-deploy-icon");
+        iconWrap->clicked().connect([this, deployId] {
+            layout_.showDeploymentDetail(deployId);
+        });
 
         auto* nameBlock = topRow->addNew<Wt::WContainerWidget>();
         nameBlock->setStyleClass("flex-grow-1 overflow-hidden");
@@ -292,8 +295,12 @@ void DeploymentListView::populateTable(const std::vector<model::Deployment>& dep
     for (const auto& d : deployments) {
         int deployId = d.id;
 
-        table_->elementAt(row, 0)->addNew<Wt::WText>(
+        auto* rowIcon = table_->elementAt(row, 0)->addNew<Wt::WText>(
             targetIcon(d.target, 24), Wt::TextFormat::XHTML);
+        rowIcon->setStyleClass("dr-deploy-icon");
+        rowIcon->clicked().connect([this, deployId] {
+            layout_.showDeploymentDetail(deployId);
+        });
         table_->elementAt(row, 0)->setStyleClass("text-center");
 
         auto* nameText = table_->elementAt(row, 1)->addNew<Wt::WText>(
