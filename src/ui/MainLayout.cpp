@@ -1,6 +1,7 @@
 #include "ui/MainLayout.h"
 #include "ui/DeploymentDetailView.h"
 #include "ui/DeploymentListView.h"
+#include "ui/SettingsView.h"
 
 #include <Wt/WApplication.h>
 #include <Wt/WImage.h>
@@ -73,6 +74,25 @@ void MainLayout::buildSidebar()
     detailItem->setPathComponent("deployment");
     detailItem->setStyleClass("nav-item");
 
+    // ── Separator before settings ────────────────────────────────────────
+    sidebar_->addNew<Wt::WText>(
+        "<hr class='border-secondary my-2'/>", Wt::TextFormat::XHTML);
+
+    auto* settingsLabel = sidebar_->addNew<Wt::WText>(
+        "<span class='text-muted small text-uppercase px-1'>Configuration</span>",
+        Wt::TextFormat::XHTML);
+
+    // Settings view
+    settingsView_ = new SettingsView();
+    auto* settingsItem = menu_->addItem(
+        "<i class='bi bi-gear me-2'></i>Settings",
+        std::unique_ptr<SettingsView>(settingsView_));
+    settingsItem->setPathComponent("settings");
+    settingsItem->setStyleClass("nav-item");
+
+    // Wire settings → apply
+    settingsView_->settingsChanged().connect(this, &MainLayout::applySettings);
+
     // Version
     sidebar_->addNew<Wt::WText>("<hr class='border-secondary mt-auto'/>", Wt::TextFormat::XHTML);
     auto* ver = sidebar_->addNew<Wt::WText>("v0.1.0");
@@ -111,6 +131,8 @@ void MainLayout::handleInternalPath(const std::string& path)
         } catch (...) {
             menu_->select(0);
         }
+    } else if (path == "/settings") {
+        menu_->select(2);
     } else if (path == "/deployments" || path == "/") {
         menu_->select(0);
         listView_->reload();
@@ -125,6 +147,34 @@ void MainLayout::showDeploymentDetail(int deploymentId)
     detailView_->loadDeployment(deploymentId);
     Wt::WApplication::instance()->setInternalPath(
         "/deployment/" + std::to_string(deploymentId), false);
+}
+
+// ---------------------------------------------------------------------------
+// Settings
+// ---------------------------------------------------------------------------
+
+void MainLayout::applySettings()
+{
+    if (!settingsView_) return;
+
+    // Update VCP / ALS base URL if provided
+    std::string url = settingsView_->vcpBaseUrl();
+    if (!url.empty()) {
+        alsClient_.setBaseUrl(url);
+        Wt::log("info") << "MainLayout: ALS base URL changed to " << url;
+    }
+
+    // Update polling timer
+    if (settingsView_->timerEnabled()) {
+        int interval = settingsView_->timerIntervalSec();
+        listView_->stopPolling();
+        listView_->startPolling(interval);
+        Wt::log("info") << "MainLayout: Polling enabled, interval="
+                         << interval << "s";
+    } else {
+        listView_->stopPolling();
+        Wt::log("info") << "MainLayout: Polling disabled";
+    }
 }
 
 } // namespace dr

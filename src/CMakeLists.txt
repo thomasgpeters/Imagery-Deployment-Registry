@@ -10,6 +10,7 @@ if(Wt_FOUND)
         ui/MainLayout.cpp
         ui/DeploymentListView.cpp
         ui/DeploymentDetailView.cpp
+        ui/SettingsView.cpp
     )
 
     # Place binary in the build root (not build/src/)

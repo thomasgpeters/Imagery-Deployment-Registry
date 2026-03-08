@@ -13,6 +13,7 @@ namespace dr {
 
 class DeploymentDetailView;
 class DeploymentListView;
+class SettingsView;
 
 /// Top-level layout: sidebar navigation + stacked content area.
 class MainLayout : public Wt::WContainerWidget {
@@ -41,6 +42,10 @@ private:
 
     DeploymentListView*   listView_   = nullptr;
     DeploymentDetailView* detailView_ = nullptr;
+    SettingsView*         settingsView_ = nullptr;
+
+    /// React to settings changes (timer, VCP URL).
+    void applySettings();
 
     bool handlingPath_ = false;   // re-entrancy guard
 };
