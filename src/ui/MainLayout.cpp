@@ -4,6 +4,7 @@
 
 #include <Wt/WApplication.h>
 #include <Wt/WImage.h>
+#include <Wt/WLogger.h>
 #include <Wt/WText.h>
 #include <cstdlib>
 
@@ -23,6 +24,8 @@ MainLayout::MainLayout()
                 + ":" + std::string(port ? port : "5670") + "/api");
         }
     }
+
+    Wt::log("info") << "MainLayout: ALS base URL = " << alsClient_.baseUrl();
 
     setStyleClass("d-flex flex-grow-1 overflow-hidden");
 
