@@ -12,6 +12,11 @@ DeploymentListView::DeploymentListView(api::AlsClient& client, MainLayout& layou
     buildUI();
 }
 
+DeploymentListView::~DeploymentListView()
+{
+    *alive_ = false;
+}
+
 void DeploymentListView::buildUI()
 {
     setStyleClass("container-fluid");
@@ -57,9 +62,14 @@ void DeploymentListView::refresh()
 {
     status_->setText("Loading...");
 
-    client_.getAll("Deployment", [this](bool ok, const nlohmann::json& items) {
+    std::weak_ptr<bool> weak = alive_;
+    client_.getAll("Deployment", [this, weak](bool ok, const nlohmann::json& items) {
+        auto guard = weak.lock();
+        if (!guard || !*guard) return;
         auto* app = Wt::WApplication::instance();
         if (!app) return;
+        Wt::WApplication::UpdateLock lock(app);
+        if (!lock) return;
 
         if (!ok) {
             status_->setText("Failed to fetch deployments from ALS backend.");

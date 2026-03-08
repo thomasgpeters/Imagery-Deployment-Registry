@@ -23,6 +23,7 @@ namespace dr {
 class DeploymentDetailView : public Wt::WContainerWidget {
 public:
     explicit DeploymentDetailView(api::AlsClient& client);
+    ~DeploymentDetailView() override;
 
     /// Fetch deployment by id and populate all tabs.
     void loadDeployment(int deploymentId);
@@ -45,6 +46,9 @@ private:
 
     api::AlsClient& client_;
     int currentDeploymentId_ = 0;
+
+    /// Shared flag for preventing callbacks from touching a destroyed view.
+    std::shared_ptr<bool> alive_ = std::make_shared<bool>(true);
 
     Wt::WText*      title_          = nullptr;
     Wt::WTabWidget* tabs_           = nullptr;

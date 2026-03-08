@@ -31,6 +31,11 @@ DeploymentDetailView::DeploymentDetailView(api::AlsClient& client)
     buildUI();
 }
 
+DeploymentDetailView::~DeploymentDetailView()
+{
+    *alive_ = false;
+}
+
 void DeploymentDetailView::buildUI()
 {
     setStyleClass("container-fluid");
@@ -93,10 +98,15 @@ void DeploymentDetailView::loadDeployment(int deploymentId)
     title_->setText("<h4>Loading deployment...</h4>");
 
     // Fetch core deployment record
+    std::weak_ptr<bool> weak = alive_;
     client_.getOne("Deployment", deploymentId,
-        [this, deploymentId](bool ok, const nlohmann::json& item) {
+        [this, deploymentId, weak](bool ok, const nlohmann::json& item) {
+            auto guard = weak.lock();
+            if (!guard || !*guard) return;
             auto* app = Wt::WApplication::instance();
             if (!app) return;
+            Wt::WApplication::UpdateLock lock(app);
+            if (!lock) return;
 
             if (!ok) {
                 title_->setText("<h4>Deployment not found</h4>");
@@ -123,11 +133,17 @@ void DeploymentDetailView::loadDeployment(int deploymentId)
 
 void DeploymentDetailView::fetchChildResources(int deploymentId)
 {
+    std::weak_ptr<bool> weak = alive_;
+
     // Images
     client_.getAll("DeploymentImage",
-        [this, deploymentId](bool ok, const nlohmann::json& items) {
+        [this, deploymentId, weak](bool ok, const nlohmann::json& items) {
+            auto guard = weak.lock();
+            if (!guard || !*guard) return;
             auto* app = Wt::WApplication::instance();
             if (!app) return;
+            Wt::WApplication::UpdateLock lock(app);
+            if (!lock) return;
             std::vector<model::DeploymentImage> images;
             if (ok) {
                 for (const auto& it : items) {
@@ -142,9 +158,13 @@ void DeploymentDetailView::fetchChildResources(int deploymentId)
 
     // Ports
     client_.getAll("DeploymentPort",
-        [this, deploymentId](bool ok, const nlohmann::json& items) {
+        [this, deploymentId, weak](bool ok, const nlohmann::json& items) {
+            auto guard = weak.lock();
+            if (!guard || !*guard) return;
             auto* app = Wt::WApplication::instance();
             if (!app) return;
+            Wt::WApplication::UpdateLock lock(app);
+            if (!lock) return;
             std::vector<model::DeploymentPort> ports;
             if (ok) {
                 for (const auto& it : items) {
@@ -159,9 +179,13 @@ void DeploymentDetailView::fetchChildResources(int deploymentId)
 
     // Env Vars
     client_.getAll("DeploymentEnvVar",
-        [this, deploymentId](bool ok, const nlohmann::json& items) {
+        [this, deploymentId, weak](bool ok, const nlohmann::json& items) {
+            auto guard = weak.lock();
+            if (!guard || !*guard) return;
             auto* app = Wt::WApplication::instance();
             if (!app) return;
+            Wt::WApplication::UpdateLock lock(app);
+            if (!lock) return;
             std::vector<model::DeploymentEnvVar> vars;
             if (ok) {
                 for (const auto& it : items) {
@@ -176,9 +200,13 @@ void DeploymentDetailView::fetchChildResources(int deploymentId)
 
     // Health
     client_.getAll("DeploymentHealth",
-        [this, deploymentId](bool ok, const nlohmann::json& items) {
+        [this, deploymentId, weak](bool ok, const nlohmann::json& items) {
+            auto guard = weak.lock();
+            if (!guard || !*guard) return;
             auto* app = Wt::WApplication::instance();
             if (!app) return;
+            Wt::WApplication::UpdateLock lock(app);
+            if (!lock) return;
             std::vector<model::DeploymentHealth> checks;
             if (ok) {
                 for (const auto& it : items) {
@@ -193,9 +221,13 @@ void DeploymentDetailView::fetchChildResources(int deploymentId)
 
     // Targets
     client_.getAll("DeploymentTarget",
-        [this, deploymentId](bool ok, const nlohmann::json& items) {
+        [this, deploymentId, weak](bool ok, const nlohmann::json& items) {
+            auto guard = weak.lock();
+            if (!guard || !*guard) return;
             auto* app = Wt::WApplication::instance();
             if (!app) return;
+            Wt::WApplication::UpdateLock lock(app);
+            if (!lock) return;
             std::vector<model::DeploymentTarget> targets;
             if (ok) {
                 for (const auto& it : items) {
@@ -210,9 +242,13 @@ void DeploymentDetailView::fetchChildResources(int deploymentId)
 
     // Audit Log
     client_.getAll("DeploymentLog",
-        [this, deploymentId](bool ok, const nlohmann::json& items) {
+        [this, deploymentId, weak](bool ok, const nlohmann::json& items) {
+            auto guard = weak.lock();
+            if (!guard || !*guard) return;
             auto* app = Wt::WApplication::instance();
             if (!app) return;
+            Wt::WApplication::UpdateLock lock(app);
+            if (!lock) return;
             std::vector<model::DeploymentLog> logs;
             if (ok) {
                 for (const auto& it : items) {

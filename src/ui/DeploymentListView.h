@@ -17,6 +17,7 @@ class MainLayout;
 class DeploymentListView : public Wt::WContainerWidget {
 public:
     DeploymentListView(api::AlsClient& client, MainLayout& layout);
+    ~DeploymentListView() override;
 
     /// Fetch deployments from ALS and rebuild the table.
     void refresh();
@@ -30,6 +31,9 @@ private:
 
     api::AlsClient& client_;
     MainLayout& layout_;
+
+    /// Shared flag for preventing callbacks from touching a destroyed view.
+    std::shared_ptr<bool> alive_ = std::make_shared<bool>(true);
 
     Wt::WText*  title_    = nullptr;
     Wt::WText*  status_   = nullptr;
