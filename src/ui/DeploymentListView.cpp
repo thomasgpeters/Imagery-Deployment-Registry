@@ -277,17 +277,15 @@ void DeploymentListView::populateTable(const std::vector<model::Deployment>& dep
 
     int row = 1;
     for (const auto& d : deployments) {
+        int deployId = d.id;
+
         table_->elementAt(row, 0)->addNew<Wt::WText>(
             targetIcon(d.target, 24), Wt::TextFormat::XHTML);
         table_->elementAt(row, 0)->setStyleClass("text-center");
 
-        int deployId = d.id;
-        auto* nameText = table_->elementAt(row, 1)->addNew<Wt::WText>(
+        table_->elementAt(row, 1)->addNew<Wt::WText>(
             "<span class='dr-deploy-name'>" + htmlEncode(d.name)
             + "</span>", Wt::TextFormat::XHTML);
-        nameText->clicked().connect([this, deployId] {
-            layout_.showDeploymentDetail(deployId);
-        });
 
         table_->elementAt(row, 2)->addNew<Wt::WText>(d.environment_name);
         table_->elementAt(row, 3)->addNew<Wt::WText>(d.stack_name);
@@ -299,6 +297,13 @@ void DeploymentListView::populateTable(const std::vector<model::Deployment>& dep
         table_->elementAt(row, 6)->addNew<Wt::WText>(d.version_label);
         table_->elementAt(row, 7)->addNew<Wt::WText>(d.deployed_by);
         table_->elementAt(row, 8)->addNew<Wt::WText>(d.deployed_at);
+
+        // Make the entire row clickable
+        auto* tableRow = table_->rowAt(row);
+        tableRow->setStyleClass("cursor-pointer");
+        tableRow->clicked().connect([this, deployId] {
+            layout_.showDeploymentDetail(deployId);
+        });
 
         ++row;
     }
