@@ -98,7 +98,7 @@ void MainLayout::handleInternalPath(const std::string& path)
         }
     } else if (path == "/deployments" || path == "/") {
         menu_->select(0);
-        listView_->refresh();
+        listView_->reload();
     }
 }
 
